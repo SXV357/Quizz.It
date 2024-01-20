@@ -9,14 +9,11 @@ def display_opening():
 
 @app.route("/generate_summary", methods = ["GET"])
 def return_generated_text():
+    # the text statistics are also returned as part of this
     raise NotImplementedError
 
 @app.route("/generate_pdf", methods = ["GET"])
 def generate_questions_pdf():
-    raise NotImplementedError
-
-@app.route("/generate_statistics", methods = ["GET"])
-def generate_statistics():
     raise NotImplementedError
 
 if __name__ == "__main__":
