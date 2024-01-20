@@ -1,14 +1,13 @@
 document.addEventListener("DOMContentLoaded", function() {
-    var generate_questions_button = document.querySelector("#processButton") // on the generate questions page
+    var generate_questions_button = document.querySelector("#generateQuestionsButton") // on the generate questions page
     var questionType = document.getElementById("questionType");
-    // query the file dropdown menu
-    // fetch the OPTION SELECTED and pass it as a query to the backend
+    var fileType = document.getElementById("questionFileSelect");
 
     generate_questions_button.addEventListener("click", (e) => {
         e.preventDefault();
-        const selectedValues = Array.from(questionType.options).filter(option => option.selected).map(option => option.value);
-        console.log(selectedValues);
-        fetch(`http://127.0.0.1:5000/generate_pdf?options=${selectedValues}`, {
+        const questionTypes = Array.from(questionType.options).filter(option => option.selected).map(option => option.value); // gets the whole array
+        const selectedFile = Array.from(fileType.options).filter(option => option.selected).map(option => option.value)[0];
+        fetch(`http://127.0.0.1:5000/generate_pdf?questionTypes=${questionTypes}&file=${selectedFile}`, {
             method: "GET"
         })
         .then((res) => res.json())

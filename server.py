@@ -4,9 +4,9 @@ import os
 
 app = Flask(__name__, static_url_path='/static')
 
-def extract_file_contents():
-    target_file = os.listdir("uploads")[0]
-    pdf_images = convert_to_image(os.path.join("uploads", target_file))
+def extract_file_contents(file_name):
+    target_file = os.path.join("uploads", file_name)
+    pdf_images = convert_to_image(target_file)
     text_contents = process_pdf_page(pdf_images) 
     return text_contents
 
@@ -34,12 +34,10 @@ def save_uploaded_file():
 
 @app.route("/generate_summary", methods = ["GET"])
 def return_generated_text():
-    print("text_contents")
-    text_contents = extract_file_contents()
+    text_contents = extract_file_contents(request.args.get("file"))
     # run this through the ML model
     text_statistics = calculate_text_statistics(text_contents)
-    print("text_contents")
-    return render_template("summarize_text.html", text=text_statistics, statistics="bye")
+    return render_template("summarize_text.html", summarized_text=text_contents, statistics= text_statistics)
 
 @app.route("/fetch_summarize_files", methods = ["GET"])
 def return_summary_files():
@@ -53,8 +51,9 @@ def return_question_files():
 
 @app.route("/generate_pdf", methods = ["GET"])
 def generate_questions_pdf():
-    text_contents = extract_file_contents()
-    question_types = request.args.get("options") # array of all the selected options
+    question_types = request.args.get("questionTypes") # array of all the selected options
+    file = request.args.get("file") # file name
+    text_contents = extract_file_contents(file)
     # run this through the ML model and then construct a prompt to provide to the model
     # then write contents to a pdf file and save it
 
