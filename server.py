@@ -14,6 +14,7 @@ def display_page(file_name: str = None):
 
 @app.route("/upload_file", methods = ["POST"])
 def save_uploaded_file():
+    print("backend upload file")
     if request.method == "POST":
         if "upload" in request.files: # upload(for attribute of label tag, id and name of input tag)
             file = request.files["upload"]
