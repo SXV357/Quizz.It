@@ -14,7 +14,6 @@ def display_page(file_name: str = None):
 
 @app.route("/upload_file", methods = ["POST"])
 def save_uploaded_file():
-    print("backend upload file")
     if request.method == "POST":
         if "upload" in request.files: # upload(for attribute of label tag, id and name of input tag)
             file = request.files["upload"]
@@ -29,13 +28,19 @@ def save_uploaded_file():
 
 @app.route("/generate_summary", methods = ["GET"])
 def return_generated_text():
-    summarized_text = ""
-    text_statistics = {}
-    # takes in the file name as parameter, searches for the file name in the associated directory, then feeds it into the OCR algorithm which then redirects the user to a new page
+    target_file = os.listdir("uploads")[0]
+    pdf_images = convert_to_image(os.path.join("uploads", target_file))
+    text_contents = process_pdf_page(pdf_images)
+    # run this through the ML model
+    text_statistics = calculate_text_statistics(text_contents)
     return render_template("summarize_text.html", summarized_text = "", statistics = text_statistics)
 
 @app.route("/generate_pdf", methods = ["GET"])
 def generate_questions_pdf():
+    target_file = os.listdir("uploads")[0]
+    pdf_images = convert_to_image(os.path.join("uploads", target_file))
+    text_contents = process_pdf_page(pdf_images)
+    # run this through the ML model and then provide the questions
     raise NotImplementedError
 
 if __name__ == "__main__":
