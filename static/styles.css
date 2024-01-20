@@ -135,14 +135,22 @@
 
 .intro__section {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    text-align: center;
     color: white;
 }
 
-.select__button {
-
+.file_upload_status {
+    margin-top: 10px;
+    font-size: 25px;
 }
+
+input#upload.select__button {
+    margin: auto;
+}
+
 
 .upload__button {
     color: white;

@@ -23,7 +23,7 @@ def save_uploaded_file():
     if request.method == "POST":
         if "upload" in request.files: # upload(for attribute of label tag, id and name of input tag)
             file = request.files["upload"]
-            if file.filename.split(".")[1] == "pdf":
+            if file.filename.endswith(".pdf"):
                 if not os.path.exists("uploads"):
                     os.makedirs("uploads")
                 file.save(os.path.join("uploads", file.filename))
