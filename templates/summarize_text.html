@@ -4,10 +4,97 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href = "/static/styles.css" rel = "stylesheet" type = "text/css">
-    <title>Quizz.It</title>
-</head>
+    <link href="/static/styles.css" rel="stylesheet" type="text/css">
+    <title>Quizz.It - Summarize PDF</title>
+    <link
+        rel="stylesheet"
+        href="https://use.fontawesome.com/releases/v5.14.0/css/all.css"
+        integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc"
+        crossorigin="anonymous"
+    />
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #87CEEB; /* Sky Blue */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh; 
+            margin: 0; 
+        }
 
+        #summarizeSection {
+            background-color: #ADD8E6; /* Light Blue */
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%; 
+            max-width: 800px; 
+            text-align: center;
+        }
+
+        h2 {
+            color: #001F3F; /* Navy Blue */
+        }
+
+        p {
+            color: #004080; /* Darker Navy Blue */
+        }
+
+        input, button {
+            background-color: #001F3F; /* Navy Blue */
+            color: #FFF;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #001A33; /* Dark Navy Blue */
+        }
+
+        #summaryResult {
+            margin-top: 20px;
+            color: #004080; /* Darker Navy Blue */
+        }
+    </style>
+</head>
 <body>
-    <!--add code here-->
+
+    <nav>
+        <h1 id="title">Welcome to <span id="quizzit">Quizz.It!</span></h1>
+        <ul>
+            <div class="nav__bar">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#section2">Generate Questions</a></li>
+            </div>
+        </ul>
+    </nav>
+
+    <section id="summarizeSection">
+        <h2>Summarize the Contents of a PDF</h2>
+        <p>Click the button below to generate a summary.</p>
+
+        <input type="file" id="pdfFile" accept=".pdf" />
+        <button type="button" onclick="summarizePDF()">Generate Summary</button>
+
+        <div id="summaryResult"></div>
+    </section>
+
+    <footer>
+        <p>&copy; 2023 Simple HTML Page</p>
+    </footer>
+
+    <script>
+        function summarizePDF() {
+            // Logic to summarize PDF using JavaScript 
+            var summaryResult = "placeholder summary for the PDF content.";
+            document.getElementById("summaryResult").innerHTML = summaryResult;
+        }
+    </script>
+
 </body>
+</html>
+
