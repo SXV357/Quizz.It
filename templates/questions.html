@@ -2,12 +2,164 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href = "/static/styles.css" rel = "stylesheet" type = "text/css">
-    <title>Quizz.It</title>
-</head>
+    <title>Question Creator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #87CEEB; /* Sky Blue */
+            margin: 20px;
+        }
 
+        #container {
+            background-color: #ADD8E6; /* Light Blue */
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            margin: auto;
+        }
+
+        h2 {
+            text-align: center;
+            color: #001F3F; /* Navy Blue */
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            color: #004080; /* Darker Navy Blue */
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #004080; /* Darker Navy Blue */
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #001F3F; /* Navy Blue */
+            color: #FFF;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #001A33; /* Dark Navy Blue */
+        }
+    </style><style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #87CEEB; /* Sky Blue */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh; /* Make the body full height of the viewport */
+        margin: 0; /* Remove default margin */
+    }
+
+    #container {
+        background-color: #ADD8E6; /* Light Blue */
+        padding: 20px;
+        border-radius: 10px;
+        width: 400px;
+    }
+
+    h2 {
+        text-align: center;
+        color: #001F3F; /* Navy Blue */
+    }
+
+    label {
+        display: block;
+        margin-top: 10px;
+        color: #004080; /* Darker Navy Blue */
+    }
+
+    input, textarea, select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        margin-bottom: 10px;
+        border: 1px solid #004080; /* Darker Navy Blue */
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    button {
+        background-color: #001F3F; /* Navy Blue */
+        color: #FFF;
+        padding: 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    button:hover {
+        background-color: #001A33; /* Dark Navy Blue */
+    }
+</style>
+</head>
 <body>
-    <!--add code here-->
+    <div id="container">
+        <h2>Question Creator</h2>
+        <form id="questionForm">
+            <label for="questionType">Select Question Type:</label>
+            <select id="questionType" name="questionType">
+                <option value="multipleChoice">Multiple Choice</option>
+                <option value="shortAnswer">Short Answer</option>
+                <option value="longAnswer">Long Answer</option>
+            </select>
+
+            <button type="button" onclick="createQuestion()">Create Question</button>
+            <button type="button" onclick="exportAsPdf()">Export as PDF</button>
+        </form>
+    </div>
+
+    <script>
+        function createQuestion() {
+            var questionType = document.getElementById("questionType").value;
+            var questionText = document.getElementById("questionText").value;
+
+            if (questionType === "multipleChoice") {
+                var options = document.getElementById("options").value.split(',');
+                console.log("Multiple Choice Question: " + questionText);
+                console.log("Options: " + options);
+            } else if (questionType === "shortAnswer") {
+                console.log("Short Answer Question: " + questionText);
+            } else if (questionType === "longAnswer") {
+                console.log("Long Answer Question: " + questionText);
+            }
+        }
+
+        function exportAsPdf() {
+            var questionType = document.getElementById("questionType").value;
+            var questionText = document.getElementById("questionText").value;
+
+            var pdfContent = "Questions:\n";
+            pdfContent += "Type: " + questionType + "\n";
+            pdfContent += "Question: " + questionText;
+
+            // For simplicity, you can print the PDF content to console
+            console.log("Exported as PDF:\n" + pdfContent);
+        }
+
+        // Show/hide options input based on question type
+        document.getElementById("questionType").addEventListener("change", function () {
+            var optionsContainer = document.getElementById("optionsContainer");
+            if (this.value === "multipleChoice") {
+                optionsContainer.style.display = "block";
+            } else {
+                optionsContainer.style.display = "none";
+            }
+        });
+    </script>
 </body>
+</html>
