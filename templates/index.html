@@ -14,36 +14,36 @@
     />
 <script src = "/static/index.js"></script>
 </head>
+
 <body>
 <nav class="navbar">
-        <div class="navbar__container">
-            <a href="#home" id="navbar__logo">Quizz.It</a>
+    <div class="navbar__container">
+        <a href="#home" id="navbar__logo">Quizz.It</a>
             <div class="navbar__toggle" id="mobile-menu">
                 <span class="bar"></span> <span class="bar"></span>
                 <span class="bar"></span>
             </div>
-<ul class="navbar__menu">
-                <li class="navbar__item">
-                    <a href="Generate Summary" class="navbar__links" id="about-page">Get Summary</a>
-                </li>
-                <li class="navbar__item">
-                    <a href="Generate Questions" class="navbar__links" id="services-page">Get Questions</a>
-                </li>
+        <ul class="navbar__menu">
+            <li class="navbar__item">
+                <a href="Generate Summary" class="navbar__links" id="about-page">Get Summary</a>
+            </li>
+            <li class="navbar__item">
+                <a href="Generate Questions" class="navbar__links" id="services-page">Get Questions</a>
+            </li>
         </ul>
-</div>
-    </nav>
+    </div>
+</nav>
 
   <div class="intro" id="home">
         <div class="intro__container">
             <h1 class="intro__heading">Welcome to <span>Quizz.It</span></h1>
             <p class="intro__description">Please Upload Your File Below</p>
         </div>
-    <section>
+    <section class = "intro__section">
         <form id="uploadForm" method="post" enctype="multipart/form-data" action = "">
-            <label for="upload">Choose a file:</label>
-            <input type="file" id="upload" name="upload">
+            <input type="file" id="upload" name="upload" class = "select__button">
             <br>
-            <input type="submit" value="Upload" class = "upload_button">
+            <input type="submit" value="Upload" id = "upload" class = "upload__button">
         </form>
         <div class = "file_upload_status"></div>
     </section>
@@ -65,14 +65,6 @@
             </div>
         </div>
     </div>
-
-
-
-
-
-
-
-
 
     <footer>
         <p>&copy; 2023 Simple HTML Page</p>
