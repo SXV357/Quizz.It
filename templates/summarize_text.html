@@ -60,7 +60,6 @@
             color: #004080; /* Darker Navy Blue */
         }
     </style>
-    <script src = "/static/index.js"></script>
 </head>
 <body>
 
@@ -76,10 +75,10 @@
 
     <section id="summarizeSection">
         <h2>Here is a summary of your PDF:</h2>
-        <p>{{summarized_text}}</p>
+        <p>{{ text }}</p>
 
         <h2>Here are some statistics about your PDF:</h2>
-        <p>{{statistics}}</p>
+        <p>{{ statistics }}</p>
     </section>
 
     <!-- <footer>
@@ -88,4 +87,3 @@
 
 </body>
 </html>
-
