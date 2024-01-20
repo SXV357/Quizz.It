@@ -18,15 +18,17 @@ def save_uploaded_file():
             file = request.files["upload"]
             if file.filename.split(".")[1] == "pdf":
                 file.save("uploads/", file.filename)
-                return jsonify({"Status": "File uploaded successfully"})
+                return jsonify({"status": "File uploaded successfully"})
             else:
-                return jsonify({"Status": "Make sure you upload a PDF file only!"})
-    return jsonify({"Status": "Make sure you have provided a file"})
+                return jsonify({"status": "Make sure you upload a PDF file only!"})
+    return jsonify({"status": "Make sure you have provided a file"})
 
 @app.route("/generate_summary", methods = ["GET"])
 def return_generated_text():
-    # the text statistics are also returned as part of this
-    raise NotImplementedError
+    summarized_text = ""
+    text_statistics = {}
+    # takes in the file name as parameter, searches for the file name in the associated directory, then feeds it into the OCR algorithm which then redirects the user to a new page
+    return render_template("summarize_text.html", summarized_text = "", statistics = text_statistics)
 
 @app.route("/generate_pdf", methods = ["GET"])
 def generate_questions_pdf():
