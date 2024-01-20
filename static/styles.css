@@ -51,6 +51,7 @@
 
 .navbar__item {
     height: 80px;
+    padding: 20px;
 }
 
 .navbar__links {
