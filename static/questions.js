@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", function() {
     var generate_questions_button = document.querySelector("#processButton") // on the generate questions page
     var questionType = document.getElementById("questionType");
+    // query the file dropdown menu
+    // fetch the OPTION SELECTED and pass it as a query to the backend
 
     generate_questions_button.addEventListener("click", (e) => {
         e.preventDefault();

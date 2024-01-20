@@ -22,13 +22,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     summary_button.addEventListener("click", (e) => {
         e.preventDefault();
-        window.location.href = "/generate_summary";
-        
+        window.location.href = "/fetch_summarize_files";
     });
 
     questions_button.addEventListener("click", (e) => {
         e.preventDefault();
-        window.location.href = "./questions.html";
+        window.location.href = "/fetch_questions_files"; // this renders questions.html
     });
 
 });
