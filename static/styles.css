@@ -151,7 +151,6 @@ input#upload.select__button {
     margin: auto;
 }
 
-
 .upload__button {
     color: white;
     font-size: 1rem;
@@ -166,6 +165,11 @@ input#upload.select__button {
     position: relative;
     transition: all 0.35s;
     outline: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
 }
 
 
