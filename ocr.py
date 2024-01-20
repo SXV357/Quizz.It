@@ -2,7 +2,9 @@ from pdf2image import convert_from_path
 import numpy as np
 import cv2
 import pytesseract
-import matplotlib.pyplot as plt
+import re
+import pyphen
+from math import *
 
 # converts all pages of PDF to PIL images and converts those images to numpy array for processing
 def convert_to_image(file_path):
@@ -36,26 +38,20 @@ def process_pdf_page(pages):
         text_contents[f"Page {i + 1}"] = extracted_text
     return text_contents
 
-def calculate_text_statistics(extracted_text):
-    pages = extracted_text.keys()
+def calculate_text_statistics(text_contents):
+    num_words, num_chars, num_sentences, num_syllables = 0, 0, 0, 0
+    pages = text_contents.keys()
+    pattern = re.compile(r'^[!@#$%^&*(),.?":{}|<>]+$')
+    dic = pyphen.Pyphen(lang='en_US')
     for page in pages:
-        text = list(filter(lambda x: x != "", text_contents[page].split("\n"))) # array of all text
-        # treat each item in the array as an individual sentence()
-
-    # number of words
-    # average word length
-    # number of characters
-    # number of sentences
-    # number of syllables
-    # legibility index
-    raise NotImplementedError
-
-def generate_visualizations():
-    # save the visualization and send the image to the frontend so it can be displayed accordingly(TENTATIVE)
-    raise NotImplementedError
-
-if __name__ == "__main__":
-    pdf_images = convert_to_image("Shreyas Viswanathan Resume.pdf")
-    text_contents = process_pdf_page(pdf_images)
-    items = list(filter(lambda x: x != "", text_contents["Page 1"].split("\n")))
-    print(items)
+        text = list(map(lambda t: t.strip(), list(filter(lambda x: x != "" and len(x) > 1 and not bool(pattern.match(x)), text_contents[page].split("\n")))))
+        for sentence in text:
+            num_sentences += 1
+            words = sentence.split(" ") # in one given sentence
+            num_words += len(words)
+            for i in range(len(words)):
+                num_chars += len(words[i])
+                num_syllables += len(dic.inserted(words[i]).split('-')) 
+    averageSyllablesPerWord = num_syllables / num_words
+    averageWordsPerSentence = num_words / num_sentences
+    return {"Number of words": num_words, "Average word length": num_chars // num_words, "Number of characters": num_chars, "Number of sentences": num_sentences, "Number of syllables": num_syllables, "Legibility index": round(abs(((averageWordsPerSentence * 1.015) + (averageSyllablesPerWord * 84.6)) - 206.835))}    
