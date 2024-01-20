@@ -6,33 +6,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href = "/static/styles.css" rel = "stylesheet" type = "text/css">
     <title>Quizz.It</title>
+    <link
+            rel="stylesheet"
+            href="https://use.fontawesome.com/releases/v5.14.0/css/all.css"
+            integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc"
+            crossorigin="anonymous"
+    />
 </head>
 <body>
-    <header>
-        <h1 id = "title">Welcome to My Simple Page</h1>
-    </header>
 
     <nav>
+        <h1 id = "title">Welcome to <span id = "quizzit">Quizz.It!</span></h1>
         <ul>
-            <li><a href="#section1">Section 1</a></li>
-            <li><a href="#section2">Section 2</a></li>
-            <li><a href="#section3">Section 3</a></li>
+            <div class = "nav__bar">
+                <li><a href="#section1">Section 1</a></li>
+                <li><a href="#section2">Section 2</a></li>
+            </div>
         </ul>
     </nav>
 
     <section id="section1">
-        <h2>Section 1</h2>
-        <p>This is the first section of my simple page.</p>
+        <h2>Want a summary of a document?</h2>
+        <p>Click the button below!</p>
+        <button type="button"><a href = "templates/summarize_text.html"><div class = "the_first_button">Generate Summary!</div></a></button> 
     </section>
 
     <section id="section2">
-        <h2>Section 2</h2>
-        <p>This is the second section of my simple page.</p>
-    </section>
-
-    <section id="section3">
-        <h2>Section 3</h2>
-        <p>This is the third section of my simple page.</p>
+        <h2>Want auto-generated questions?</h2>
+        <p>Click the button below!.</p>
+        <button type="button"><a href = "templates/questions.html"><div class = "the_second_button">Generate Questions!</div></a></button>
     </section>
 
     <footer>
