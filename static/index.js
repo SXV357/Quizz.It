@@ -22,14 +22,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     summary_button.addEventListener("click", (e) => {
         e.preventDefault();
-        fetch("http://127.0.0.1:5000/generate_summary", {
-            method: "GET"
-        })
-        .then((res) => {
-            console.log("Received some data from the backend");
-            window.location.href = "./summarize_text.html";
-        })
-        .catch((err) => console.log(err));
+        window.location.href = "/generate_summary";
+        
     });
 
     questions_button.addEventListener("click", (e) => {
