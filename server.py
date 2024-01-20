@@ -1,4 +1,4 @@
-from flask import Flask, render_template, render_template_string, jsonify, request
+from flask import Flask, render_template, jsonify, request
 from ocr import *
 import os
 
@@ -35,7 +35,7 @@ def save_uploaded_file():
 @app.route("/generate_summary", methods = ["GET"])
 def return_generated_text():
     text_contents = extract_file_contents(request.args.get("file"))
-    # run this through the ML model
+    # run this through the ML model and pass it as a param to summarized_text
     text_statistics = calculate_text_statistics(text_contents)
     return render_template("summarize_text.html", summarized_text=text_contents, statistics= text_statistics)
 
@@ -52,10 +52,10 @@ def return_question_files():
 @app.route("/generate_pdf", methods = ["GET"])
 def generate_questions_pdf():
     question_types = request.args.get("questionTypes") # array of all the selected options
-    file = request.args.get("file") # file name
-    text_contents = extract_file_contents(file)
+    text_contents = extract_file_contents(request.args.get("file"))
     # run this through the ML model and then construct a prompt to provide to the model
     # then write contents to a pdf file and save it
+    return jsonify({"status": "PDF Generated Successfully"})
 
 if __name__ == "__main__":
     app.run(debug = True)
