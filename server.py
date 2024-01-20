@@ -1,5 +1,6 @@
 from flask import Flask, render_template, jsonify, request
 from ocr import *
+import os
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -17,7 +18,9 @@ def save_uploaded_file():
         if "upload" in request.files: # upload(for attribute of label tag, id and name of input tag)
             file = request.files["upload"]
             if file.filename.split(".")[1] == "pdf":
-                file.save("uploads/", file.filename)
+                if not os.path.exists("uploads"):
+                    os.makedirs("uploads")
+                file.save(os.path.join("uploads", file.filename))
                 return jsonify({"status": "File uploaded successfully"})
             else:
                 return jsonify({"status": "Make sure you upload a PDF file only!"})
