@@ -41,6 +41,16 @@ def return_generated_text():
     print("text_contents")
     return render_template("summarize_text.html", text=text_statistics, statistics="bye")
 
+@app.route("/fetch_summarize_files", methods = ["GET"])
+def return_summary_files():
+    files = os.listdir("uploads")
+    return render_template("summarize_text_file_select.html", files = files)
+
+@app.route("/fetch_questions_files", methods = ["GET"])
+def return_question_files():
+    files = os.listdir("uploads")
+    return render_template("questions.html", files = files)
+
 @app.route("/generate_pdf", methods = ["GET"])
 def generate_questions_pdf():
     text_contents = extract_file_contents()
