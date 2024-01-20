@@ -36,7 +36,12 @@ def process_pdf_page(pages):
         text_contents[f"Page {i + 1}"] = extracted_text
     return text_contents
 
-def calculate_text_statistics():
+def calculate_text_statistics(extracted_text):
+    pages = extracted_text.keys()
+    for page in pages:
+        text = list(filter(lambda x: x != "", text_contents[page].split("\n"))) # array of all text
+        # treat each item in the array as an individual sentence()
+
     # number of words
     # average word length
     # number of characters
@@ -46,10 +51,11 @@ def calculate_text_statistics():
     raise NotImplementedError
 
 def generate_visualizations():
-    # save the visualization and send the image to the frontend so it can be displayed accordingly
+    # save the visualization and send the image to the frontend so it can be displayed accordingly(TENTATIVE)
     raise NotImplementedError
 
 if __name__ == "__main__":
     pdf_images = convert_to_image("Shreyas Viswanathan Resume.pdf")
     text_contents = process_pdf_page(pdf_images)
-    print(list(filter(lambda x: x != "", text_contents["Page 1"].split("\n"))))
+    items = list(filter(lambda x: x != "", text_contents["Page 1"].split("\n")))
+    print(items)
