@@ -4,6 +4,12 @@ import os
 
 app = Flask(__name__, static_url_path='/static')
 
+def extract_file_contents():
+    target_file = os.listdir("uploads")[0]
+    pdf_images = convert_to_image(os.path.join("uploads", target_file))
+    text_contents = process_pdf_page(pdf_images) 
+    return text_contents
+
 @app.route("/")
 def display_opening():
     return render_template("index.html")
@@ -28,20 +34,16 @@ def save_uploaded_file():
 
 @app.route("/generate_summary", methods = ["GET"])
 def return_generated_text():
-    target_file = os.listdir("uploads")[0]
-    pdf_images = convert_to_image(os.path.join("uploads", target_file))
-    text_contents = process_pdf_page(pdf_images)
+    # text_contents = extract_file_contents()
     # run this through the ML model
-    text_statistics = calculate_text_statistics(text_contents)
-    return render_template("summarize_text.html", summarized_text = "", statistics = text_statistics)
+    # text_statistics = calculate_text_statistics(text_contents)
+    return render_template("summarize_text.html", summarized_text = "", statistics = "")
 
 @app.route("/generate_pdf", methods = ["GET"])
 def generate_questions_pdf():
-    target_file = os.listdir("uploads")[0]
-    pdf_images = convert_to_image(os.path.join("uploads", target_file))
-    text_contents = process_pdf_page(pdf_images)
-    # run this through the ML model and then provide the questions
-    raise NotImplementedError
+    text_contents = extract_file_contents()
+    question_types = request.args.get("options") # array of all the selected options
+    # run this through the ML model and then construct a prompt to provide to the model
 
 if __name__ == "__main__":
     app.run(debug = True)

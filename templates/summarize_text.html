@@ -60,10 +60,11 @@
             color: #004080; /* Darker Navy Blue */
         }
     </style>
+    <script src = "/static/index.js"></script>
 </head>
 <body>
 
-    <nav>
+    <!-- <nav>
         <h1 id="title">Welcome to <span id="quizzit">Quizz.It!</span></h1>
         <ul>
             <div class="nav__bar">
@@ -71,29 +72,19 @@
                 <li><a href="#section2">Generate Questions</a></li>
             </div>
         </ul>
-    </nav>
+    </nav> -->
 
     <section id="summarizeSection">
-        <h2>Summarize the Contents of a PDF</h2>
-        <p>Click the button below to generate a summary.</p>
+        <h2>Here is a summary of your PDF:</h2>
+        <p>{{summarized_text}}</p>
 
-        <input type="file" id="pdfFile" accept=".pdf" />
-        <button type="button" onclick="summarizePDF()">Generate Summary</button>
-
-        <div id="summaryResult"></div>
+        <h2>Here are some statistics about your PDF:</h2>
+        <p>{{statistics}}</p>
     </section>
 
-    <footer>
+    <!-- <footer>
         <p>&copy; 2023 Simple HTML Page</p>
-    </footer>
-
-    <script>
-        function summarizePDF() {
-            // Logic to summarize PDF using JavaScript 
-            var summaryResult = "placeholder summary for the PDF content.";
-            document.getElementById("summaryResult").innerHTML = summaryResult;
-        }
-    </script>
+    </footer> -->
 
 </body>
 </html>

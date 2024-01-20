@@ -110,6 +110,7 @@
         background-color: #001A33; /* Dark Navy Blue */
     }
     </style>
+    <script src = "/static/questions.js"></script>
 </head>
 <body>
     <div id="container">
@@ -122,42 +123,8 @@
                 <option value="longAnswer">Long Answer</option>
             </select>
 
-            <button type="button" id="processButton" onclick="processForm()">Generate Questions</button>
+            <button type="button" id="processButton">Generate Questions</button>
         </form>
     </div>
-
-    <script>
-        function processForm() {
-            var questionType = document.getElementById("questionType").value;
-            var questionText = document.getElementById("questionText").value;
-
-            if (questionType === "multipleChoice") {
-                var options = document.getElementById("options").value.split(',');
-                console.log("Multiple Choice Question: " + questionText);
-                console.log("Options: " + options);
-            } else if (questionType === "shortAnswer") {
-                console.log("Short Answer Question: " + questionText);
-            } else if (questionType === "longAnswer") {
-                console.log("Long Answer Question: " + questionText);
-            }
-
-            // functionality for exporting as PDF
-            var pdfContent = "Questions:\n";
-            pdfContent += "Type: " + questionType + "\n";
-            pdfContent += "Question: " + questionText;
-
-
-            console.log("Exported as PDF:\n" + pdfContent);
-        }
-      
-        document.getElementById("questionType").addEventListener("change", function () {
-            var optionsContainer = document.getElementById("optionsContainer");
-            if (this.value === "multipleChoice") {
-                optionsContainer.style.display = "block";
-            } else {
-                optionsContainer.style.display = "none";
-            }
-        });
-    </script>
 </body>
 </html>
