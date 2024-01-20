@@ -7,16 +7,16 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #87CEEB; /* Sky Blue */
+            background-color: black;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh; 
-            margin: 0; 
+            height: 100vh;
+            margin: 0;
         }
 
         #container {
-            background-color: #ADD8E6; /* Light Blue */
+            background: linear-gradient(to right, rgb(0, 255, 255), rgb(9, 130, 130), rgb(6, 87, 87));
             padding: 20px;
             border-radius: 10px;
             width: 400px;
@@ -24,13 +24,13 @@
 
         h2 {
             text-align: center;
-            color: #001F3F; /* Navy Blue */
+            color: #001F3F;
         }
 
         label {
             display: block;
             margin-top: 10px;
-            color: #004080; /* Darker Navy Blue */
+            color: #004080;
         }
 
         input, textarea, select {
@@ -38,13 +38,13 @@
             padding: 8px;
             margin-top: 5px;
             margin-bottom: 10px;
-            border: 1px solid #004080; /* Darker Navy Blue */
+            border: 1px solid #004080;
             border-radius: 4px;
             box-sizing: border-box;
         }
 
         button {
-            background-color: #001F3F; /* Navy Blue */
+            background-color: #001F3F;
             color: #FFF;
             padding: 10px;
             border: none;
@@ -54,63 +54,10 @@
         }
 
         button:hover {
-            background-color: #001A33; /* Dark Navy Blue */
+            background-color: #001A33;
         }
-
-    </style><style>
-    body {
-        font-family: 'Arial', sans-serif;
-        background-color: black; /* Sky Blue */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh; /* Make the body full height of the viewport */
-        margin: 0; /* Remove default margin */
-    }
-
-    #container {
-        background: linear-gradient(to right, rgb(0, 255, 255), rgb(9, 130, 130), rgb(6, 87, 87)); /* Light Blue */
-        padding: 20px;
-        border-radius: 10px;
-        width: 400px;
-    }
-
-    h2 {
-        text-align: center;
-        color: #001F3F; /* Navy Blue */
-    }
-
-    label {
-        display: block;
-        margin-top: 10px;
-        color: #004080; /* Darker Navy Blue */
-    }
-
-    input, textarea, select {
-        width: 100%;
-        padding: 8px;
-        margin-top: 5px;
-        margin-bottom: 10px;
-        border: 1px solid #004080; /* Darker Navy Blue */
-        border-radius: 4px;
-        box-sizing: border-box;
-    }
-
-    button {
-        background-color: #001F3F; /* Navy Blue */
-        color: #FFF;
-        padding: 10px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        width: 100%;
-    }
-
-    button:hover {
-        background-color: #001A33; /* Dark Navy Blue */
-    }
     </style>
-    <script src = "/static/questions.js"></script>
+    <script src="/static/questions.js"></script>
 </head>
 <body>
     <div id="container">
@@ -121,6 +68,13 @@
                 <option value="multipleChoice">Multiple Choice</option>
                 <option value="shortAnswer">Short Answer</option>
                 <option value="longAnswer">Long Answer</option>
+            </select>
+
+            <label for="fileSelect">Choose a File:</label>
+            <select id="fileSelect" name="fileSelect">
+                <option value="sample_file1.pdf">Sample File 1</option>
+                <option value="sample_file2.pdf">Sample File 2</option>
+                <option value="sample_file3.pdf">Sample File 3</option>
             </select>
 
             <button type="button" id="processButton">Generate Questions</button>
