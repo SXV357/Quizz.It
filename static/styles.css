@@ -133,6 +133,33 @@
     -moz-text-fill-color: transparent;
 }
 
+.intro__section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.select__button {
+
+}
+
+.upload__button {
+    color: white;
+    font-size: 1rem;
+    background: #833ab4;
+    background: -webkit-linear-gradient(to right, rgb(0, 255, 255), rgb(9, 130, 130), rgb(6, 87, 87));
+    background: linear-gradient(to right, rgb(0, 255, 255), rgb(9, 130, 130), rgb(6, 87, 87));
+    padding: 15px 60px;
+    border: none;
+    border-radius: 4px;
+    margin-top: 2rem;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.35s;
+    outline: none;
+}
+
 
 
 #quizzit {
