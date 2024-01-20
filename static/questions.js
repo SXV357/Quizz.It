@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function() {
     var generate_questions_button = document.querySelector("#generateQuestionsButton") // on the generate questions page
     var questionType = document.getElementById("questionType");
     var fileType = document.getElementById("questionFileSelect");
+    var pdfGenerationStatus = document.querySelector(".generatePDFStatus");
 
     generate_questions_button.addEventListener("click", (e) => {
         e.preventDefault();
@@ -12,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function() {
         })
         .then((res) => res.json())
         .then((data) => {
-            console.log("PDF generated successfully!");
+            pdfGenerationStatus.innerHTML = data.status;
         })
     })
 })
