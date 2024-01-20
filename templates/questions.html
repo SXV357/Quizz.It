@@ -60,13 +60,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-<<<<<<< HEAD
-        height: 100vh; 
-        margin: 0; 
-=======
         height: 100vh; /* Make the body full height of the viewport */
         margin: 0; /* Remove default margin */
->>>>>>> 3f0177b68e1250a8c161e0ebdde3ae95a3eb95c1
     }
 
     #container {
@@ -152,19 +147,11 @@
             pdfContent += "Type: " + questionType + "\n";
             pdfContent += "Question: " + questionText;
 
-<<<<<<< HEAD
-    
-            console.log("Exported as PDF:\n" + pdfContent);
-        }
-
-    
-=======
             // For simplicity, you can print the PDF content to console
             console.log("Exported as PDF:\n" + pdfContent);
         }
 
         // Show/hide options input based on question type
->>>>>>> 3f0177b68e1250a8c161e0ebdde3ae95a3eb95c1
         document.getElementById("questionType").addEventListener("change", function () {
             var optionsContainer = document.getElementById("optionsContainer");
             if (this.value === "multipleChoice") {
@@ -175,8 +162,4 @@
         });
     </script>
 </body>
-<<<<<<< HEAD
 </html>
-=======
-</html>
->>>>>>> 3f0177b68e1250a8c161e0ebdde3ae95a3eb95c1
