@@ -71,14 +71,14 @@
                 <option value="longAnswer">Long Answer</option>
             </select>
 
-            <label for="fileSelect">Choose a File:</label>
-            <select id="fileSelect" name="fileSelect">
-                <option value="sample_file1.pdf">Sample File 1</option>
-                <option value="sample_file2.pdf">Sample File 2</option>
-                <option value="sample_file3.pdf">Sample File 3</option>
+            <label for="questionFileSelect">Choose a file to generate questions based off of:</label>
+            <select id="questionFileSelect" name="questionFileSelect">
+                {% for file in files %}
+                    <option value="{{ file }}">{{ file }}</option>
+                {% endfor %}
             </select>
 
-            <button type="button" id="processButton">Generate Questions</button>
+            <button type="button" id="generateQuestionsButton">Generate Questions</button>
         </form>
     </div>
 </body>

@@ -110,21 +110,21 @@
         background-color: #001A33; /* Dark Navy Blue */
     }
     </style>
-    <script src = "/static/questions.js"></script>
+    <script src = "/static/summarize.js"></script>
 </head>
 
 <body>
     <div id="container">
         <h2>Selection</h2>
         <form id="questionForm">
-            <label for="questionType">Select a File That You Would Like to Summarize:</label>
-            <select id="questionType" name="questionType" multiple>
-                <option value="multipleChoice">File 1</option>
-                <option value="shortAnswer">File 2</option>
-                <option value="longAnswer">File 3</option>
+            <label for="summarizeFileSelect">Select a File That You Would Like to Summarize:</label>
+            <select id="summarizeFileSelect" name="summarizeFileSelect" multiple>
+                {% for file in files %}
+                    <option value="{{ file }}">{{ file }}</option>
+                {% endfor %}
             </select>
 
-            <button type="button" id="processButton">Summarize This File</button>
+            <button type="button" id="summarizeFileButton">Summarize This File</button>
         </form>
     </div>
 </body>
