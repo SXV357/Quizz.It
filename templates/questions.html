@@ -8,7 +8,11 @@
         body {
             font-family: 'Arial', sans-serif;
             background-color: #87CEEB; /* Sky Blue */
-            margin: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh; 
+            margin: 0; 
         }
 
         #container {
@@ -16,7 +20,6 @@
             padding: 20px;
             border-radius: 10px;
             width: 400px;
-            margin: auto;
         }
 
         h2 {
@@ -53,6 +56,7 @@
         button:hover {
             background-color: #001A33; /* Dark Navy Blue */
         }
+
     </style><style>
     body {
         font-family: 'Arial', sans-serif;
@@ -105,26 +109,25 @@
     button:hover {
         background-color: #001A33; /* Dark Navy Blue */
     }
-</style>
+    </style>
 </head>
 <body>
     <div id="container">
         <h2>Question Creator</h2>
         <form id="questionForm">
             <label for="questionType">Select Question Type:</label>
-            <select id="questionType" name="questionType">
+            <select id="questionType" name="questionType" multiple>
                 <option value="multipleChoice">Multiple Choice</option>
                 <option value="shortAnswer">Short Answer</option>
                 <option value="longAnswer">Long Answer</option>
             </select>
 
-            <button type="button" onclick="createQuestion()">Create Question</button>
-            <button type="button" onclick="exportAsPdf()">Export as PDF</button>
+            <button type="button" id="processButton" onclick="processForm()">Generate Questions</button>
         </form>
     </div>
 
     <script>
-        function createQuestion() {
+        function processForm() {
             var questionType = document.getElementById("questionType").value;
             var questionText = document.getElementById("questionText").value;
 
@@ -137,21 +140,16 @@
             } else if (questionType === "longAnswer") {
                 console.log("Long Answer Question: " + questionText);
             }
-        }
 
-        function exportAsPdf() {
-            var questionType = document.getElementById("questionType").value;
-            var questionText = document.getElementById("questionText").value;
-
+            // functionality for exporting as PDF
             var pdfContent = "Questions:\n";
             pdfContent += "Type: " + questionType + "\n";
             pdfContent += "Question: " + questionText;
 
-            // For simplicity, you can print the PDF content to console
+
             console.log("Exported as PDF:\n" + pdfContent);
         }
-
-        // Show/hide options input based on question type
+      
         document.getElementById("questionType").addEventListener("change", function () {
             var optionsContainer = document.getElementById("optionsContainer");
             if (this.value === "multipleChoice") {
