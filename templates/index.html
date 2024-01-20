@@ -24,18 +24,20 @@
             </div>
 <ul class="navbar__menu">
                 <li class="navbar__item">
-                    <a href="Upload File" class="navbar__links" id="home-page">Upload File</a>
+                    <a href="Generate Summary" class="navbar__links" id="about-page">Get Summary</a>
                 </li>
                 <li class="navbar__item">
-                    <a href="Generate Summary" class="navbar__links" id="about-page">Generate Summary</a>
-                </li>
-                <li class="navbar__item">
-                    <a href="Generate Questions" class="navbar__links" id="services-page">Generate Questions</a>
+                    <a href="Generate Questions" class="navbar__links" id="services-page">Get Questions</a>
                 </li>
         </ul>
 </div>
     </nav>
 
+  <div class="intro" id="home">
+        <div class="intro__container">
+            <h1 class="intro__heading">Welcome to <span>Quizz.It</span></h1>
+            <p class="intro__description">Please Upload Your File Below</p>
+        </div>
     <section id="section1">
 <h2>Please Upload Your File Here</h2>
         <form id="uploadForm" method="post" enctype="multipart/form-data" action = "">
@@ -46,18 +48,24 @@
         </form>
         <div class = "file_upload_status"></div>
     </section>
+  </div>
 
     <section id="section3">
         <h2>Want a summary of a document?</h2>
         <p>Click the button below!</p>
-        <button type="button"><a href = "templates/summarize_text.html"><div class = "the_first_button">Generate Summary!</div></a></button> 
+        <button type="button"><div class = "the_first_button">Generate Summary!</div></button> 
     </section>
 
     <section id="section2">
         <h2>Want auto-generated questions?</h2>
         <p>Click the button below!</p>
-        <button type="button"><a href = "templates/questions.html"><div class = "the_second_button">Generate Questions!</div></a></button>
+        <button type="button"><div class = "the_second_button">Generate Questions!</div></button>
     </section>
+
+
+
+
+
 
     <footer>
         <p>&copy; 2023 Simple HTML Page</p>
