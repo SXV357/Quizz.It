@@ -2,10 +2,8 @@ document.addEventListener("DOMContentLoaded", function() {
     var file_upload_status = document.querySelector(".file_upload_status");
     var file_input = document.querySelector("#upload");
     var upload_form = document.querySelector("#uploadForm");
-    var summary_button = document.querySelector(".the_first_button");
-    var questions_button = document.querySelector(".the_second_button");
-    var generate_questions_button = document.querySelector("#processButton")
-    var questionType = document.getElementById("questionType");
+    var summary_button = document.querySelector(".summary_button"); // both on the main page
+    var questions_button = document.querySelector(".questions_button"); // both on the main page
 
     upload_form.addEventListener("submit", (e) => {
         e.preventDefault(); // Prevent the default form submission
@@ -27,21 +25,16 @@ document.addEventListener("DOMContentLoaded", function() {
         fetch("http://127.0.0.1:5000/generate_summary", {
             method: "GET"
         })
-        .then((res) => res.json())
-        .then((data) => {
-            window.location.href = "/templates/summarize_text.html";
+        .then((res) => {
+            console.log("Received some data from the backend");
+            window.location.href = "./summarize_text.html";
         })
         .catch((err) => console.log(err));
     });
 
     questions_button.addEventListener("click", (e) => {
         e.preventDefault();
-        window.location.href = "/templates/questions.html";
+        window.location.href = "./questions.html";
     });
-
-    generate_questions_button.addEventListener("click", (e) => {
-        const selectedValues = Array.from(questionType.options).filter(option => option.selected).map(option => option.value);
-        let options = ""
-    })
 
 });
