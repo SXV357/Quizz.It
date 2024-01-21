@@ -70,20 +70,22 @@ def compute_metrics(eval_pred):
 model = AutoModelForSeq2SeqLM.from_pretrained(t5)
 
 #Text to be summarized:
-full = "summarize: But don’t be fooled; your body is working hard when you’re in the pool. Water is denser than air, so moving through H2O puts more external pressure on your limbs than out-of-water training, studies have shown. Even better, that pressure is uniformly distributed. It doesn’t collect in your knees, hips or the other places that bear most of the burden when you exercise with gravity sitting on your shoulders. How you breathe during a swimming workout is another big differentiator, says David Tanner, a research associate at Indiana University and co-editor of an educational handbook on the science of swimming. During a run or bike ride, your breath tends to be shallow and your exhales forceful. “It’s the other way around with swimming,” says Tanner. “You breathe in quickly and deeply, and then let the air trickle out.” Because your head is under water when you swim, these breathing adjustments are vital, and they may improve the strength of your respiratory muscles, Tanner says. “This kind of breathing keeps the lung alveoli”—the millions of little balloon-like structures that inflate and deflate as your breathe—“from collapsing and sticking together.”."
+# format: "summarize: ndhwqjfhwjfwgfgw"
 
-#Test
-summarizer = pipeline("summarization", model="stevhliu/my_awesome_billsum_model")
-summarizer(full)
+def billsum_summary(text):
+    #Test
+    summarizer = pipeline("summarization", model="stevhliu/my_awesome_billsum_model")
+    summarizer(text)
 
-#Tokenize the text:
-tokenizer = AutoTokenizer.from_pretrained("stevhliu/my_awesome_billsum_model")
-inputs = tokenizer(full, return_tensors="pt").input_ids
+    #Tokenize the text:
+    tokenizer = AutoTokenizer.from_pretrained("stevhliu/my_awesome_billsum_model")
+    inputs = tokenizer(text, return_tensors="pt").input_ids
 
-#Use generate()
-model = AutoModelForSeq2SeqLM.from_pretrained("stevhliu/my_awesome_billsum_model")
-outputs = model.generate(inputs, max_new_tokens=100, do_sample=False)
+    #Use generate()
+    model = AutoModelForSeq2SeqLM.from_pretrained("stevhliu/my_awesome_billsum_model")
+    outputs = model.generate(inputs, max_new_tokens=100, do_sample=False)
 
-#Decode the generated token ids back into text:
-real_out = tokenizer.decode(outputs[0], skip_special_tokens=True)
-print(real_out)
+    #Decode the generated token ids back into text:
+    real_out = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    
+    return real_out

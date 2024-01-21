@@ -1,6 +1,9 @@
 from flask import Flask, render_template, jsonify, request
 from ocr import *
 import os
+from summary import billsum_summary
+from gpt import *
+import PyPDF2
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -35,9 +38,12 @@ def save_uploaded_file():
 @app.route("/generate_summary", methods = ["GET"])
 def return_generated_text():
     text_contents = extract_file_contents(request.args.get("file"))
-    # run this through the ML model and pass it as a param to summarized_text
     text_statistics = calculate_text_statistics(text_contents)
-    return render_template("summarize_text.html", summarized_text=text_contents, statistics= text_statistics)
+    summarized_text = ""
+    for text in text_contents:
+        summarized_text += billsum_summary(" ".join(text_contents[text])) + " "
+    summarized_text = summarized_text.strip()
+    return render_template("summarize_text.html", summarized_text=summarized_text, statistics= text_statistics)
 
 @app.route("/fetch_summarize_files", methods = ["GET"])
 def return_summary_files():
@@ -58,15 +64,30 @@ def return_ask_question_files():
 def fetch_response():
     query = request.args.get("query")
     text_contents = extract_file_contents(request.args.get("file"))
-    # run the query and text contents through the model
-    return jsonify({"response": ""})
+    extracted_text = ""
+    for content in text_contents:
+        extract_text += " ".join(text_contents[content])
+    response = answer_questions(extracted_text, query)
+    return jsonify({"response": response})
 
 @app.route("/generate_pdf", methods = ["GET"])
 def generate_questions_pdf():
     question_types = request.args.get("questionTypes") # array of all the selected options
-    text_contents = extract_file_contents(request.args.get("file"))
-    # run this through the ML model and then construct a prompt to provide to the model
-    # then write contents to a pdf file and save it
+    filename = request.args.get("file")
+    text_contents = extract_file_contents(filename)
+    extracted_text = ""
+    for content in text_contents:
+        extract_text += " ".join(text_contents[content])
+    response = generate_questions(extracted_text, question_types)
+    pdf_writer = PyPDF2.PdfWriter()
+    if not os.path.exists("generatedQuestions"):
+        os.makedirs("generatedQuestions")
+    with open(f"generatedQuestions/{filename}-generatedQuestions.pdf", "w") as new_pdf:
+        pdf_writer.add_page()
+        pdf_content = pdf_writer.add_object(new_pdf)
+        pdf_text = pdf_writer.create_text_object(response)
+        pdf_content.add_text(pdf_text)
+        pdf_writer.write(new_pdf)
     return jsonify({"status": "PDF Generated Successfully"})
 
 if __name__ == "__main__":
