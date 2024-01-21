@@ -7,8 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/13b4-gCtQAlbps3FSv6swXokdSInfRuaA
 """
 
-print("Hello world!")
-
 from datasets import load_dataset
 from transformers import AutoTokenizer
 from transformers import DataCollatorForSeq2Seq
@@ -19,41 +17,36 @@ from transformers import AutoModelForSeq2SeqLM, Seq2SeqTrainingArguments, Seq2Se
 from transformers import pipeline
 import pandas as pd
 
-#Start by loading the smaller California state bill subset of the BillSum dataset from the 🤗 Datasets library:
-billsum = load_dataset("billsum", split="ca_test")
+#Start by loading in a bill training data which contains text and its summary:
+bill = load_dataset("billsum", split="ca_test")
 
-type(billsum)
+#Split the dataset into a 60 train and 40 test:
+bill = bill.train_test_split(test_size=0.4)
 
-#Split the dataset into a train and test set with the train_test_split method:
-billsum = billsum.train_test_split(test_size=0.4)
+#Load T5 tokenizer to process text and summary:
+t5 = "t5-small"
+tokenizer = AutoTokenizer.from_pretrained(t5)
 
-#The next step is to load a T5 tokenizer to process text and summary:
-checkpoint = "t5-small"
-tokenizer = AutoTokenizer.from_pretrained(checkpoint)
+check = "summarize: "
 
-prefix = "summarize: "
+#The preprocessing function:
+#Check the prefix the input with a 'summarize: '.
+#Truncate sequences to be the maximum length. I decided that 2000 should be the max input with 500 as the max output
 
-#The preprocessing function you want to create needs to:
-#1)Prefix the input with a prompt so T5 knows this is a summarization task. Some models capable of multiple NLP tasks require prompting for specific tasks.
-#2)Use the keyword text_target argument when tokenizing labels.
-#3)Truncate sequences to be no longer than the maximum length set by the max_length parameter.
+def preprocess(examples):
+    inputs = [check + doc for doc in examples["text"]]
+    model_inputs = tokenizer(inputs, max_length=2000, truncation=True)
 
-def preprocess_function(examples):
-    inputs = [prefix + doc for doc in examples["text"]]
-    model_inputs = tokenizer(inputs, max_length=1024, truncation=True)
-
-    labels = tokenizer(text_target=examples["summary"], max_length=128, truncation=True)
+    labels = tokenizer(text_target=examples["summary"], max_length=500, truncation=True)
 
     model_inputs["labels"] = labels["input_ids"]
     return model_inputs
 
 #To apply the preprocessing function over the entire dataset, use 🤗 Datasets map method.
-#You can speed up the map function by setting batched=True to process multiple elements of the dataset at once:
-tokenized_billsum = billsum.map(preprocess_function, batched=True)
+tokenized_bill = bill.map(preprocess, batched=True)
 
 #Now create a batch of examples using DataCollatorForSeq2Seq.
-#It’s more efficient to dynamically pad the sentences to the longest length in a batch during collation, instead of padding the whole dataset to the maximum length.
-data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=checkpoint)
+data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=t5)
 
 #Then create a function that passes your predictions and labels to compute to calculate the ROUGE metric:
 rouge = evaluate.load("rouge")
@@ -71,25 +64,26 @@ def compute_metrics(eval_pred):
 
     return {k: round(v, 4) for k, v in result.items()}
 
+# Note this is not used in the current model as we did not have enough time to fine tune the model
+
 #Load T5 with AutoModelForSeq2SeqLM:
-model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint)
+model = AutoModelForSeq2SeqLM.from_pretrained(t5)
 
-#For summarization you should prefix your input as shown below:
-text = "summarize: A period of unrest and civil wars in the 1st century BCE marked the transition of Rome from a republic to an empire. This period encompassed the career of Julius Caesar, who eventually took full power over Rome as its dictator. After his assassination in 44 BCE, the triumvirate of Mark Antony, Lepidus, and Octavian, Caesar’s nephew, ruled. It was not long before Octavian went to war against Antony in northern Africa, and after his victory at Actium (31 BCE) he was crowned Rome’s first emperor, Augustus. His reign, from 27 BCE to 14 CE, was distinguished by stability and peace. With a mind toward maintaining the structure of power entrusted to his rule, Augustus began thinking early about who should follow him. Death played havoc with his attempts to select his successor. He had no son and his nephew Marcellus, his son-in-law Agrippa, and his grandsons Gaius and Lucius each predeceased him. He eventually chose Tiberius, a scion of the ultra-aristocratic Claudia gens, and in 4 CE adopted him as his son. Tiberius (reigned 14–37) became the first successor in the Julio-Claudian dynasty and ruled as an able administrator but cruel tyrant. His great-nephew Caligula (37–41) reigned as an absolutist, his short reign filled with reckless spending, callous murders, and humiliation of the Senate. Claudius (41–54) centralized state finances in the imperial household, thus making rapid strides in organizing the imperial bureaucracy, but was ruthless toward the senators and equites. Nero (54–68) left administration to capable advisers for a few years but then asserted himself as a vicious despot. He brought the dynasty to its end by being the first emperor to suffer damnatio memoriae: his reign was officially stricken from the record by order of the Senate."
+#Text to be summarized:
+full = "summarize: But don’t be fooled; your body is working hard when you’re in the pool. Water is denser than air, so moving through H2O puts more external pressure on your limbs than out-of-water training, studies have shown. Even better, that pressure is uniformly distributed. It doesn’t collect in your knees, hips or the other places that bear most of the burden when you exercise with gravity sitting on your shoulders. How you breathe during a swimming workout is another big differentiator, says David Tanner, a research associate at Indiana University and co-editor of an educational handbook on the science of swimming. During a run or bike ride, your breath tends to be shallow and your exhales forceful. “It’s the other way around with swimming,” says Tanner. “You breathe in quickly and deeply, and then let the air trickle out.” Because your head is under water when you swim, these breathing adjustments are vital, and they may improve the strength of your respiratory muscles, Tanner says. “This kind of breathing keeps the lung alveoli”—the millions of little balloon-like structures that inflate and deflate as your breathe—“from collapsing and sticking together.”."
 
-#-----------------------------------------------------------------------------------------------------
-#The simplest way to try out your finetuned model for inference is to use it in a pipeline().
-#Instantiate a pipeline for summarization with your model, and pass your text to it:
+#Test
 summarizer = pipeline("summarization", model="stevhliu/my_awesome_billsum_model")
-summarizer(text)
+summarizer(full)
 
-#Tokenize the text and return the input_ids as PyTorch tensors:
+#Tokenize the text:
 tokenizer = AutoTokenizer.from_pretrained("stevhliu/my_awesome_billsum_model")
-inputs = tokenizer(text, return_tensors="pt").input_ids
+inputs = tokenizer(full, return_tensors="pt").input_ids
 
-#Use the generate() method to create the summarization.
+#Use generate()
 model = AutoModelForSeq2SeqLM.from_pretrained("stevhliu/my_awesome_billsum_model")
 outputs = model.generate(inputs, max_new_tokens=100, do_sample=False)
 
 #Decode the generated token ids back into text:
-tokenizer.decode(outputs[0], skip_special_tokens=True)
+real_out = tokenizer.decode(outputs[0], skip_special_tokens=True)
+print(real_out)
