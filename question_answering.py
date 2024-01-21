@@ -89,6 +89,9 @@ def generate_answer(cont, quest):
   tokenizer = AutoTokenizer.from_pretrained("deepset/roberta-base-squad2")
   inputs = tokenizer(quest, cont, return_tensors="pt")
 
+  inputs["input_ids"] = inputs["input_ids"][:,:512]
+  inputs["attention_mask"] = inputs["attention_mask"][:,:512]
+
   #Create outputs using the model with the inputs
   with torch.no_grad():
     outputs = model(**inputs)
@@ -102,4 +105,4 @@ def generate_answer(cont, quest):
 
   return tokenizer.decode(predict_answer_tokens)
 
-generate_answer(context,question)
+print(generate_answer(context,question))
