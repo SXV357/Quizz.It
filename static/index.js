@@ -6,6 +6,10 @@ document.addEventListener("DOMContentLoaded", function() {
     var questions_button = document.querySelector(".questions_button"); // both on the main page
     var ask_question_button = document.querySelector(".ask_question_button");
 
+    var summaryFiles = document.querySelector(".summaryFilesStatus");
+    var genQuestionFilesStatus = document.querySelector(".generateQuestionFilesStatus");
+    var askQuestionFilesStatus = document.querySelector(".askQuestionFilesStatus");
+
     upload_form.addEventListener("submit", (e) => {
         e.preventDefault(); // Prevent the default form submission
         var formData = new FormData();
@@ -23,16 +27,49 @@ document.addEventListener("DOMContentLoaded", function() {
 
     summary_button.addEventListener("click", (e) => {
         e.preventDefault();
-        window.location.href = "/fetch_summarize_files";
+        fetch("http://127.0.0.1:5000/check_files", {
+            method: "GET"
+        })
+        .then((res) => res.json())
+        .then((data) => {
+            if (data.filesExist) {
+                window.location.href = "/fetch_summarize_files";
+            } else {
+                summaryFiles.innerHTML = "You haven\'t uploaded any files yet!";
+                return;
+            }
+        })
     });
 
     questions_button.addEventListener("click", (e) => {
         e.preventDefault();
-        window.location.href = "/fetch_questions_files"; // this renders questions.html
+        fetch("http://127.0.0.1:5000/check_files", {
+            method: "GET"
+        })
+        .then((res) => res.json())
+        .then((data) => {
+            if (data.filesExist) {
+                window.location.href = "/fetch_questions_files";
+            } else {
+                genQuestionFilesStatus.innerHTML = "You haven\'t uploaded any files yet!";
+                return;
+            }
+        })
     });
 
     ask_question_button.addEventListener("click", (e) => {
         e.preventDefault();
-        window.location.href = "/fetch_ask_questions_files";
+        fetch("http://127.0.0.1:5000/check_files", {
+            method: "GET"
+        })
+        .then((res) => res.json())
+        .then((data) => {
+            if (data.filesExist) {
+                window.location.href = "/fetch_ask_questions_files";
+            } else {
+                askQuestionFilesStatus.innerHTML = "You haven\'t uploaded any files yet!";
+                return;
+            }
+        })
     })
 });

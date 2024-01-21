@@ -182,14 +182,16 @@
     margin-left: 70px;
 }
 
-
-
 #quizzit {
     color: #001A33;
 }
 
-
-
+.summaryFilesStatus, .generateQuestionFilesStatus, .askQuestionFilesStatus {
+    text-align: center;
+    margin-top: 15px;
+    color: rgb(255, 0, 0);
+    font-weight: bold;
+}
 
 /*
     options css
