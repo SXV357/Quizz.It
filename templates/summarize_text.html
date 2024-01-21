@@ -27,10 +27,42 @@
             background: linear-gradient(to right, rgb(0, 255, 255), rgb(9, 130, 130), rgb(6, 87, 87));
             padding: 40px;
             border-radius: 10px;
-            width: 80%; 
-            max-width: 800px; 
+            width: 750px;
+            height: 750px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
             text-align: center;
         }
+
+        .summary_text {
+            margin-top: 20px;
+        }
+
+        .summary {
+            max-width: 100%;
+            overflow: hidden;
+            word-wrap: break-word;
+        }
+
+        .stats {
+            max-width: 100%;
+            overflow: hidden;
+            word-wrap: break-word;
+            margin-top: 20px;
+        }
+
+        .stats ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .stats ul p {
+            margin: 0;
+        }
+
 
         h2 {
             color: #001F3F; /* Navy Blue */
@@ -74,11 +106,22 @@
     </nav> -->
 
     <section id="summarizeSection">
-        <h2>Here is a summary of your PDF:</h2>
-        <p>{{ summarized_text }}</p>
+        <div class="summary">
+            <h2>Here is a summary of your PDF:</h2>
+            <p class = "summary_text">{{ summarized_text }}</p>
+        </div>
 
-        <h2>Here are some statistics about your PDF:</h2>
-        <p>{{ statistics }}</p>
+        <div class="stats">
+            <h2>Here are some statistics about your PDF:</h2>
+        <ul>
+            <li>Number of words: {{statistics["Number of words"]}}</li>
+            <li>Average word length: {{statistics["Average word length"]}}</li>
+            <li>Number of characters: {{statistics["Number of characters"]}}</li>
+            <li>Number of sentences: {{statistics["Number of sentences"]}}</li>
+            <li>Number of syllables: {{statistics["Number of syllables"]}}</li>
+            <li>Legibility index: {{statistics["Legibility index"]}}</li>
+        </ul>
+        </div>
     </section>
 
     <!-- <footer>

@@ -14,6 +14,7 @@ def convert_to_image(file_path):
 
 def process_pdf_page(pages):
     text_contents = {}
+    pattern = re.compile(r'^[!@#$%^&*(),.?":{}|<>]+$')
     for i in range(len(pages)):
         current_page = pages[i]
         # fix the alignment of the image in case it is not straight(TENTATIVE)
@@ -35,16 +36,15 @@ def process_pdf_page(pages):
         _, thresh_img = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         # run the page through pyseterract to extract the text contents
         extracted_text = pytesseract.image_to_string(thresh_img)
-        text_contents[f"Page {i + 1}"] = extracted_text
+        text_contents[f"Page {i + 1}"] = list(map(lambda t: str(t).strip(), list(filter(lambda x: x != "" and len(x) > 1 and not bool(pattern.match(x)), extracted_text.split("\n"))))) # this is an array of all the text contents
     return text_contents
 
 def calculate_text_statistics(text_contents):
     num_words, num_chars, num_sentences, num_syllables = 0, 0, 0, 0
     pages = text_contents.keys()
-    pattern = re.compile(r'^[!@#$%^&*(),.?":{}|<>]+$')
     dic = pyphen.Pyphen(lang='en_US')
     for page in pages:
-        text = list(map(lambda t: t.strip(), list(filter(lambda x: x != "" and len(x) > 1 and not bool(pattern.match(x)), text_contents[page].split("\n")))))
+        text = text_contents[page]
         for sentence in text:
             num_sentences += 1
             words = sentence.split(" ") # in one given sentence

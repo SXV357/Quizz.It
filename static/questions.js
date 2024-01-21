@@ -8,6 +8,10 @@ document.addEventListener("DOMContentLoaded", function() {
         e.preventDefault();
         const questionTypes = Array.from(questionType.options).filter(option => option.selected).map(option => option.value); // gets the whole array
         const selectedFile = Array.from(fileType.options).filter(option => option.selected).map(option => option.value)[0];
+        if (questionTypes.length === 0) {
+            pdfGenerationStatus.innerHTML = "You need to select atleast one question type!";
+            return;
+        }
         fetch(`http://127.0.0.1:5000/generate_pdf?questionTypes=${questionTypes}&file=${selectedFile}`, {
             method: "GET"
         })
