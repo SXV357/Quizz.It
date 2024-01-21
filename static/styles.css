@@ -114,8 +114,19 @@
     -mo-text-fill-color: transparent;
 }
 
+.intro__info {
+    color: white;
+    font-size: 20px;
+    background-color: rgb(6, 87, 87);
+    border-radius: 4px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
 .intro__description {
-    font-size: 60px;
+    font-size: 45px;
     background: aquamarine; /* fallback for old browsers */
     background: -webkit-linear-gradient(
             to right,
