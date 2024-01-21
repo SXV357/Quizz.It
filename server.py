@@ -21,6 +21,14 @@ def display_opening():
 def display_page(file_name: str = None):
     return render_template(f'{file_name}')
 
+@app.route("/check_files", methods = ["GET"])
+def return_file_count():
+    files = os.listdir("uploads")
+    if len(files) == 0:
+        return jsonify({"filesExist": False})
+    else:
+        return jsonify({"filesExist": True})
+
 @app.route("/upload_file", methods = ["POST"])
 def save_uploaded_file():
     if request.method == "POST":
