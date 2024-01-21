@@ -14,7 +14,8 @@ document.addEventListener("DOMContentLoaded", function() {
             responseField.innerHTML = "Make sure you enter a valid query!";
             return;
         }
-        fetch (`http://127.0.0.1:5000/generate_pdf?query=${inputField.value}&file=${selectedFile}`, {
+        responseField.innerHTML = "Waiting on a response..."
+        fetch (`http://127.0.0.1:5000/get_model_response?query=${inputField.value}&file=${selectedFile}`, {
             method: "GET"
         }).then((res) => res.json())
         .then((data) => {

@@ -1,9 +1,9 @@
+import fitz
 from flask import Flask, render_template, jsonify, request
 from ocr import *
 import os
 from summary import billsum_summary
 from gpt import *
-import PyPDF2
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -66,7 +66,7 @@ def fetch_response():
     text_contents = extract_file_contents(request.args.get("file"))
     extracted_text = ""
     for content in text_contents:
-        extract_text += " ".join(text_contents[content])
+        extracted_text += " ".join(text_contents[content])
     response = answer_questions(extracted_text, query)
     return jsonify({"response": response})
 
@@ -77,17 +77,18 @@ def generate_questions_pdf():
     text_contents = extract_file_contents(filename)
     extracted_text = ""
     for content in text_contents:
-        extract_text += " ".join(text_contents[content])
+        extracted_text += " ".join(text_contents[content])
     response = generate_questions(extracted_text, question_types)
-    pdf_writer = PyPDF2.PdfWriter()
+
     if not os.path.exists("generatedQuestions"):
         os.makedirs("generatedQuestions")
-    with open(f"generatedQuestions/{filename}-generatedQuestions.pdf", "w") as new_pdf:
-        pdf_writer.add_page()
-        pdf_content = pdf_writer.add_object(new_pdf)
-        pdf_text = pdf_writer.create_text_object(response)
-        pdf_content.add_text(pdf_text)
-        pdf_writer.write(new_pdf)
+    
+    doc = fitz.open()
+    page = doc._newPage(width=600, height=845)
+    where = fitz.Point(45, 100)
+    page.insert_text(where, response, fontsize=8)
+    doc.save(f"generatedQuestions/{filename[:len(filename) - 4]}-generatedQuestions.pdf")
+
     return jsonify({"status": "PDF Generated Successfully"})
 
 if __name__ == "__main__":

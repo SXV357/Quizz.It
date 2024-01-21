@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", function() {
             pdfGenerationStatus.innerHTML = "You need to select atleast one question type!";
             return;
         }
+        pdfGenerationStatus.innerHTML = "Please wait as the questions are being generated...";
         fetch(`http://127.0.0.1:5000/generate_pdf?questionTypes=${questionTypes}&file=${selectedFile}`, {
             method: "GET"
         })
