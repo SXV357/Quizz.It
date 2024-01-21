@@ -56,19 +56,16 @@ model = AutoModelForSeq2SeqLM.from_pretrained(t5)
 #Method for summarizing:
 
 def remove_duplicates(input_str):
+    input = input_str.split(" ")
     used = set()
     result = []
 
-    for char in input_str:
-        if char not in used:
-            used.add(char)
-            result.append(char)
+    for word in input:
+        if word not in used:
+            used.add(word)
+            result.append(word)
 
-    return ''.join(result)
-
-# Example usage
-original_string = "programming"
-result_string = remove_duplicates(original_string)
+    return ' '.join(result)
 
 def create_summary(text):
     #Test

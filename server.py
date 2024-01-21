@@ -2,7 +2,7 @@ import fitz
 from flask import Flask, render_template, jsonify, request
 from ocr import *
 import os
-from summary import billsum_summary
+from summary import create_summary
 from gpt import *
 
 app = Flask(__name__, static_url_path='/static')
@@ -49,7 +49,7 @@ def return_generated_text():
     text_statistics = calculate_text_statistics(text_contents)
     summarized_text = ""
     for text in text_contents:
-        summarized_text += billsum_summary(" ".join(text_contents[text])) + " "
+        summarized_text += create_summary(" ".join(text_contents[text])) + " "
     summarized_text = summarized_text.strip()
     return render_template("summarize_text.html", summarized_text=summarized_text, statistics= text_statistics)
 
