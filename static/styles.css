@@ -77,6 +77,7 @@
     padding: 200px 0;
     align-items: center;
     justify-content: center;
+}
 
 .intro__container {
     display: flex;
@@ -113,17 +114,6 @@
     -moz-background-clip: text;
     -webkit-text-fill-color: transparent;
     -mo-text-fill-color: transparent;
-}
-
-.intro__info {
-    color: white;
-    font-size: 20px;
-    background-color: rgb(6, 87, 87);
-    border-radius: 4px;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 10px;
-    padding-bottom: 10px;
 }
 
 .intro__description {
@@ -318,6 +308,4 @@
             #12d8fa,
             #a6ffcb
     );
-}
-
 }
