@@ -73,6 +73,6 @@ def create_summary(text):
 
     #Remove duplicate words
     real_out = real_out.split()
-    real_out = (" ".join(sorted(set(real_out), key=words.index)))
+    real_out = (" ".join(set(real_out), key=real_out.index))
 
     return real_out
