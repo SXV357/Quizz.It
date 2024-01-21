@@ -85,25 +85,24 @@ question = "What is unique about Norway?"
 context = "Norway is a country of breathtaking glaciers, fjords, and avid winter sport enthusiasts. The terrain is glaciated with mostly high plateaus and rugged mountains broken by fertile valleys, scattered plains, coastline deeply indented by fjords, and arctic tundra in north. During the warmer months, Norwegians of all ages love to be outside and hike, fish, and barbecue. In the colder months, some travelers are lucky enough to catch a glimpse of the spectacular Aurora Borealis (The Northern Lights). Norwegians tend to have a strong sense of history and civic engagement and on special occasions, many Norwegians wearing traditional clothing, or bunad. In Norwegian culture, some of the most important values are tolerance, respect and equality."
 
 def generate_answer(cont, quest):
-    #AutoTokenize and turn into inputs
-    tokenizer = AutoTokenizer.from_pretrained("deepset/roberta-base-squad2")
-    inputs = tokenizer(quest, cont, return_tensors="pt")
-    
-    #Ensure batch size is 1
-    inputs["input_ids"] = inputs["input_ids"][:1]
-    inputs["attention_mask"] = inputs["attention_mask"][:1]
-    
-    #Create outputs using the model with the inputs
-    with torch.no_grad():
-        outputs = model(**inputs)
-    
-    #Get the highest probability from the model output for the start and end positions
-    answer_start_index = outputs.start_logits.argmax()
-    answer_end_index = outputs.end_logits.argmax()
-    
-    #Decode the predicted tokens to get the answer
-    predict_answer_tokens = inputs.input_ids[0, answer_start_index : answer_end_index + 1]
-    
-    return tokenizer.decode(predict_answer_tokens)
+  #AutoTokenize and turn into inputs
+  tokenizer = AutoTokenizer.from_pretrained("deepset/roberta-base-squad2")
+  inputs = tokenizer(quest, cont, return_tensors="pt")
 
-generate_answer(context,question)
+  inputs["input_ids"] = inputs["input_ids"][:,:512]
+  inputs["attention_mask"] = inputs["attention_mask"][:,:512]
+
+  #Create outputs using the model with the inputs
+  with torch.no_grad():
+    outputs = model(**inputs)
+
+  #Get the highest probability from the model output for the start and end positions
+  answer_start_index = outputs.start_logits.argmax()
+  answer_end_index = outputs.end_logits.argmax()
+
+  #Decode the predicted tokens to get the answer
+  predict_answer_tokens = inputs.input_ids[0, answer_start_index : answer_end_index + 1]
+
+  return tokenizer.decode(predict_answer_tokens)
+
+print(generate_answer(context,question))
