@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function() {
     var upload_form = document.querySelector("#uploadForm");
     var summary_button = document.querySelector(".summary_button"); // both on the main page
     var questions_button = document.querySelector(".questions_button"); // both on the main page
+    var ask_question_button = document.querySelector(".ask_question_button");
 
     upload_form.addEventListener("submit", (e) => {
         e.preventDefault(); // Prevent the default form submission
@@ -30,4 +31,8 @@ document.addEventListener("DOMContentLoaded", function() {
         window.location.href = "/fetch_questions_files"; // this renders questions.html
     });
 
+    ask_question_button.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.href = "/fetch_ask_questions_files";
+    })
 });

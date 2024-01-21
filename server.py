@@ -49,6 +49,18 @@ def return_question_files():
     files = os.listdir("uploads")
     return render_template("questions.html", files = files)
 
+@app.route("/fetch_ask_questions_files", methods = ["GET"])
+def return_ask_question_files():
+    files = os.listdir("uploads")
+    return render_template("ask_questions.html", files = files)
+
+@app.route("/get_model_response", methods = ["GET"])
+def fetch_response():
+    query = request.args.get("query")
+    text_contents = extract_file_contents(request.args.get("file"))
+    # run the query and text contents through the model
+    return jsonify({"response": ""})
+
 @app.route("/generate_pdf", methods = ["GET"])
 def generate_questions_pdf():
     question_types = request.args.get("questionTypes") # array of all the selected options

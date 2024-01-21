@@ -214,7 +214,7 @@ input#upload.select__button {
 
 .options__wrapper {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 1fr;
 }
 
@@ -241,7 +241,7 @@ input#upload.select__button {
     font-size: 20px;
 }
 
-.summary_button, .questions_button {
+.summary_button, .questions_button, .ask_question_button {
     display: flex;
     justify-content: center;
     margin-top: 16px;
@@ -267,6 +267,14 @@ input#upload.select__button {
     cursor: pointer;
 }
 
+.options__card:nth-child(1) {
+    background-image: linear-gradient(
+            -225deg,
+            #245b81,
+            #12d8fa,
+            #a6ffcb
+    );
+}
 
 .options__card:nth-child(2) {
     background: #1fa2ff; /* fallback for old browsers */
@@ -284,7 +292,7 @@ input#upload.select__button {
     ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
 
-.options__card:nth-child(1) {
+.options__card:nth-child(3) {
     background-image: linear-gradient(
             -225deg,
             #245b81,
