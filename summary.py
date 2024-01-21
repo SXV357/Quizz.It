@@ -48,31 +48,14 @@ tokenized_bill = bill.map(preprocess, batched=True)
 #Now create a batch of examples using DataCollatorForSeq2Seq.
 data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=t5)
 
-#Then create a function that passes your predictions and labels to compute to calculate the ROUGE metric:
-rouge = evaluate.load("rouge")
-
-def compute_metrics(eval_pred):
-    predictions, labels = eval_pred
-    decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
-    labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
-    decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
-
-    result = rouge.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
-
-    prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in predictions]
-    result["gen_len"] = np.mean(prediction_lens)
-
-    return {k: round(v, 4) for k, v in result.items()}
-
-# Note this is not used in the current model as we did not have enough time to fine tune the model
+# Note: Metrics is not used in the current model as we did not have enough time to fine tune the model
 
 #Load T5 with AutoModelForSeq2SeqLM:
 model = AutoModelForSeq2SeqLM.from_pretrained(t5)
 
-#Text to be summarized:
-# format: "summarize: ndhwqjfhwjfwgfgw"
+#Method for summarizing:
 
-def billsum_summary(text):
+def create_summary(text):
     #Test
     summarizer = pipeline("summarization", model="stevhliu/my_awesome_billsum_model")
     summarizer(text)
@@ -87,5 +70,9 @@ def billsum_summary(text):
 
     #Decode the generated token ids back into text:
     real_out = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    
+
+    #Remove duplicate words
+    real_out = real_out.split()
+    real_out = (" ".join(sorted(set(real_out), key=words.index)))
+
     return real_out
