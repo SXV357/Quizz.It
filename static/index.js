@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function() {
         .then((data) => {
             file_upload_status.innerHTML = data.status;
         })
-        .catch((err) => console.log(err));
+        .catch((err) => file_upload_status.innerHTML = "An error occurred when uploading the file. Please try again");
     });
 
     summary_button.addEventListener("click", (e) => {
@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
         })
+        .catch((err) => summaryFiles.innerHTML = "An error occurred when fetching the files. Please try again");
     });
 
     questions_button.addEventListener("click", (e) => {
@@ -58,6 +59,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
         })
+        .catch((err) => genQuestionFilesStatus.innerHTML = "An error occurred when fetching the files. Please try again");
     });
 
     ask_question_button.addEventListener("click", (e) => {
@@ -74,5 +76,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
         })
+        .catch((err) => askQuestionFilesStatus.innerHTML = "An error occurred when fetching the files. Please try again");
     })
 });

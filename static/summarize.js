@@ -11,6 +11,10 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
         summarizeFileStatus.innerHTML = "Loading...";
-        window.location.href = `/generate_summary?file=${selectedFile}`;
+        try {
+            window.location.href = `/generate_summary?file=${selectedFile}`;
+        } catch (error) {
+            summarizeFileStatus.innerHTML = "An error occurred when generating the summary. Please try again";
+        }
     });
 })
