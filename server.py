@@ -4,7 +4,6 @@ from ocr import *
 import os
 from summary import create_summary
 from gpt import *
-from question_answering import generate_answer
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -78,9 +77,8 @@ def fetch_response():
     extracted_text = ""
     for content in text_contents:
         extracted_text += " ".join(text_contents[content])
-    long_response = answer_questions(extracted_text, query) # openAI
-    short_response = generate_answer(extracted_text, query)
-    return jsonify({"long_response": long_response, "short_response": short_response})
+    response = answer_questions(extracted_text, query) # openAI
+    return jsonify({"response": response})
 
 @app.route("/generate_pdf", methods = ["GET"])
 def generate_questions_pdf():
