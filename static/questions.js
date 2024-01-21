@@ -3,6 +3,12 @@ document.addEventListener("DOMContentLoaded", function() {
     var questionType = document.getElementById("questionType");
     var fileType = document.getElementById("questionFileSelect");
     var pdfGenerationStatus = document.querySelector(".generatePDFStatus");
+    var home = document.querySelector(".toHomePage");
+
+    home.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.href = "/";
+    })
 
     generate_questions_button.addEventListener("click", (e) => {
         e.preventDefault();

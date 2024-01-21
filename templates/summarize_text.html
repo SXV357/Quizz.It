@@ -72,6 +72,10 @@
             color: #004080; /* Darker Navy Blue */
         }
 
+        button:hover {
+            background-color: #001A33;
+        }
+
         input, button {
             background-color: #001F3F; /* Navy Blue */
             color: #FFF;
@@ -83,27 +87,23 @@
             margin-top: 10px;
         }
 
-        button:hover {
-            background-color: #001A33; /* Dark Navy Blue */
-        }
-
         #summaryResult {
             margin-top: 20px;
             color: #004080; /* Darker Navy Blue */
         }
     </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var home = document.querySelector(".toHomePage");
+
+            home.addEventListener("click", (e) => {
+                e.preventDefault();
+                window.location.href = "/";
+            })
+        })
+    </script>
 </head>
 <body>
-
-    <!-- <nav>
-        <h1 id="title">Welcome to <span id="quizzit">Quizz.It!</span></h1>
-        <ul>
-            <div class="nav__bar">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="#section2">Generate Questions</a></li>
-            </div>
-        </ul>
-    </nav> -->
 
     <section id="summarizeSection">
         <div class="summary">
@@ -122,6 +122,7 @@
             <li>Legibility index: {{statistics["Legibility index"]}}</li>
         </ul>
         </div>
+        <button class = "toHomePage" type = "button">Go to Home Page</button>
     </section>
 
     <!-- <footer>
