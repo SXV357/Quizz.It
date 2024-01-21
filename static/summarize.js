@@ -2,6 +2,12 @@ document.addEventListener("DOMContentLoaded", function() {
     var summarize_button = document.querySelector("#summarizeFileButton");
     var fileType = document.getElementById("summarizeFileSelect");
     var summarizeFileStatus = document.querySelector(".summarizeFileStatus");
+    var home = document.querySelector(".toHomePage");
+
+    home.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.href = "/";
+    })
 
     summarize_button.addEventListener("click", (e) => {
         e.preventDefault();

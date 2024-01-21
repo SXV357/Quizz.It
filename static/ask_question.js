@@ -3,6 +3,12 @@ document.addEventListener("DOMContentLoaded", function() {
     var fileType = document.getElementById("askQuestionFileSelect");
     var inputField = document.getElementById("questionInput");
     var responseField = document.querySelector(".askQuestionResponse");
+    var home = document.querySelector(".toHomePage");
+
+    home.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.href = "/";
+    })
 
     get_response_button.addEventListener("click", (e) => {
         e.preventDefault();

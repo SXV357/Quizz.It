@@ -24,6 +24,8 @@ def display_page(file_name: str = None):
 
 @app.route("/check_files", methods = ["GET"])
 def return_file_count():
+    if not os.path.exists("uploads"):
+        os.makedirs("uploads")
     files = os.listdir("uploads")
     if len(files) == 0:
         return jsonify({"filesExist": False})
