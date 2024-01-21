@@ -81,21 +81,25 @@ tokenized_squad = squad.map(preprocess_function, batched=True, remove_columns=sq
 model = AutoModelForQuestionAnswering.from_pretrained("deepset/roberta-base-squad2")
 
 #Define the question and answer below
-question = "Is Shreyas straight?"
-context = "Shreyas is a remarkable individual who embraces both his identity as a gay man and his journey with autism. His passion for coding serves as a powerful outlet for self-expression and creativity. Shreyas has found solace and fulfillment in the world of programming, where his unique perspective and keen attention to detail shine. As a member of the LGBTQ+ community, he advocates for inclusivity and understanding, contributing to a more accepting environment. Shreyas's ability to navigate both his sexuality and neurodiversity while excelling in his coding endeavors is a testament to his resilience and the richness he brings to the tech community."
+question = "What is unique about Norway?"
+context = "Norway is a country of breathtaking glaciers, fjords, and avid winter sport enthusiasts. The terrain is glaciated with mostly high plateaus and rugged mountains broken by fertile valleys, scattered plains, coastline deeply indented by fjords, and arctic tundra in north. During the warmer months, Norwegians of all ages love to be outside and hike, fish, and barbecue. In the colder months, some travelers are lucky enough to catch a glimpse of the spectacular Aurora Borealis (The Northern Lights). Norwegians tend to have a strong sense of history and civic engagement and on special occasions, many Norwegians wearing traditional clothing, or bunad. In Norwegian culture, some of the most important values are tolerance, respect and equality."
 
-#AutoTokenize and turn into inputs
-tokenizer = AutoTokenizer.from_pretrained("deepset/roberta-base-squad2")
-inputs = tokenizer(question, context, return_tensors="pt")
+def generate_answer(cont, quest):
+  #AutoTokenize and turn into inputs
+  tokenizer = AutoTokenizer.from_pretrained("deepset/roberta-base-squad2")
+  inputs = tokenizer(quest, cont, return_tensors="pt")
 
-#Create outputs using the model
-with torch.no_grad():
+  #Create outputs using the model with the inputs
+  with torch.no_grad():
     outputs = model(**inputs)
 
-#Get the highest probability from the model output for the start and end positions
-answer_start_index = outputs.start_logits.argmax()
-answer_end_index = outputs.end_logits.argmax()
+  #Get the highest probability from the model output for the start and end positions
+  answer_start_index = outputs.start_logits.argmax()
+  answer_end_index = outputs.end_logits.argmax()
 
-#Decode the predicted tokens to get the answer
-predict_answer_tokens = inputs.input_ids[0, answer_start_index : answer_end_index + 1]
-tokenizer.decode(predict_answer_tokens)
+  #Decode the predicted tokens to get the answer
+  predict_answer_tokens = inputs.input_ids[0, answer_start_index : answer_end_index + 1]
+
+  return tokenizer.decode(predict_answer_tokens)
+
+generate_answer(context,question)
