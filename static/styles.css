@@ -146,10 +146,13 @@
 .file_upload_status {
     margin-top: 10px;
     font-size: 25px;
+    text-align: center;
 }
 
-input#upload.select__button {
+.select__button {
     margin: auto;
+    font-size: 15px;
+    cursor: pointer;
 }
 
 .upload__button {
