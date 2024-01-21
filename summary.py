@@ -55,6 +55,21 @@ model = AutoModelForSeq2SeqLM.from_pretrained(t5)
 
 #Method for summarizing:
 
+def remove_duplicates(input_str):
+    used = set()
+    result = []
+
+    for char in input_str:
+        if char not in used:
+            used.add(char)
+            result.append(char)
+
+    return ''.join(result)
+
+# Example usage
+original_string = "programming"
+result_string = remove_duplicates(original_string)
+
 def create_summary(text):
     #Test
     summarizer = pipeline("summarization", model="stevhliu/my_awesome_billsum_model")
@@ -72,7 +87,6 @@ def create_summary(text):
     real_out = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
     #Remove duplicate words
-    real_out = real_out.split()
-    real_out = (" ".join(set(real_out), key=real_out.index))
-
+    real_out = remove_duplicates(real_out)
+    
     return real_out
