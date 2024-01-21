@@ -12,6 +12,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     upload_form.addEventListener("submit", (e) => {
         e.preventDefault(); // Prevent the default form submission
+        summaryFiles.innerHTML = "";
+        genQuestionFilesStatus.innerHTML = "";
+        askQuestionFilesStatus.innerHTML = "";
         var formData = new FormData();
         formData.append("upload", file_input.files[0]);
         fetch("http://127.0.0.1:5000/upload_file", {

@@ -81,6 +81,7 @@ def fetch_response():
 @app.route("/generate_pdf", methods = ["GET"])
 def generate_questions_pdf():
     question_types = request.args.get("questionTypes") # array of all the selected options
+    print(question_types)
     filename = request.args.get("file")
     text_contents = extract_file_contents(filename)
     extracted_text = ""
