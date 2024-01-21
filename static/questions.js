@@ -20,5 +20,6 @@ document.addEventListener("DOMContentLoaded", function() {
         .then((data) => {
             pdfGenerationStatus.innerHTML = data.status;
         })
+        .catch((err) => pdfGenerationStatus.innerHTML = "An error occurred when generating the PDF. Please try again");
     })
 })
