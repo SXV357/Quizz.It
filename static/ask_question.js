@@ -25,9 +25,8 @@ document.addEventListener("DOMContentLoaded", function() {
             method: "GET"
         }).then((res) => res.json())
         .then((data) => {
-            responseField.innerHTML = `Simplified: ${data.short_response}<br><br>Detailed: ${data.long_response}`;
+            console.log(data["response"]);
+            responseField.innerHTML = data["response"];
         })
-        .catch((err) => responseField.innerHTML = "An error occurred when retrieving a response. Please try again!");
-
     })
 })
