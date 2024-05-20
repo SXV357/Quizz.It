@@ -1,4 +1,4 @@
-# Quizz.it
+# Quizz.It
 
 ## Inspiration
 
