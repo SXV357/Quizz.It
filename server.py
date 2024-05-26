@@ -77,8 +77,8 @@ def fetch_response():
     extracted_text = ""
     for content in text_contents:
         extracted_text += " ".join(text_contents[content])
-    response = answer_questions(extracted_text, query) # openAI
-    return jsonify({"response": response})
+    # response = answer_questions(extracted_text, query)
+    return jsonify({"response": ""})
 
 @app.route("/generate_pdf", methods = ["GET"])
 def generate_questions_pdf():
@@ -89,7 +89,7 @@ def generate_questions_pdf():
     extracted_text = ""
     for content in text_contents:
         extracted_text += " ".join(text_contents[content])
-    response = generate_questions(extracted_text, question_types)
+    # response = generate_questions(extracted_text, question_types)
 
     if not os.path.exists("generatedQuestions"):
         os.makedirs("generatedQuestions")
@@ -97,7 +97,7 @@ def generate_questions_pdf():
     doc = fitz.open()
     page = doc._newPage(width=600, height=845)
     where = fitz.Point(45, 100)
-    page.insert_text(where, response, fontsize=8)
+    # page.insert_text(where, response, fontsize=8)
     doc.save(f"generatedQuestions/{filename[:len(filename) - 4]}-generatedQuestions.pdf")
 
     return jsonify({"status": "PDF Generated Successfully"})
