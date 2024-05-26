@@ -3,9 +3,11 @@ from flask import Flask, render_template, jsonify, request
 from ocr import *
 import os
 from summary import create_summary
+from flask_cors import CORS
 from gpt import *
 
 app = Flask(__name__, static_url_path='/static')
+CORS(app)
 
 def extract_file_contents(file_name):
     target_file = os.path.join("uploads", file_name)
@@ -13,13 +15,13 @@ def extract_file_contents(file_name):
     text_contents = process_pdf_page(pdf_images) 
     return text_contents
 
-@app.route("/")
-def display_opening():
-    return render_template("index.html")
+# @app.route("/")
+# def display_opening():
+#     return render_template("index.html")
 
-@app.route("/<string:file_name>")
-def display_page(file_name: str = None):
-    return render_template(f'{file_name}')
+# @app.route("/<string:file_name>")
+# def display_page(file_name: str = None):
+#     return render_template(f'{file_name}')
 
 @app.route("/check_files", methods = ["GET"])
 def return_file_count():
