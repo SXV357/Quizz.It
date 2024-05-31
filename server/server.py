@@ -57,20 +57,29 @@ def return_generated_text():
     summarized_text = summarized_text.strip()
     return render_template("summarize_text.html", summarized_text=summarized_text, statistics= text_statistics)
 
-@app.route("/fetch_summarize_files", methods = ["GET"])
-def return_summary_files():
-    files = os.listdir("uploads")
-    return render_template("summarize_text_file_select.html", files = files)
+# Have an endpoint for fetching uploaded files from the database
 
-@app.route("/fetch_questions_files", methods = ["GET"])
-def return_question_files():
-    files = os.listdir("uploads")
-    return render_template("questions.html", files = files)
+@app.route("/fetch_files", methods = ["GET"])
+def get_files():
+    print(os.listdir("uploads"))
+    return jsonify({"files": os.listdir("uploads")})
 
-@app.route("/fetch_ask_questions_files", methods = ["GET"])
-def return_ask_question_files():
-    files = os.listdir("uploads")
-    return render_template("ask_questions.html", files = files)
+# @app.route("/fetch_summarize_files", methods = ["GET"])
+# def return_summary_files():
+#     return os.listdir("uploads")
+#     # files = os.listdir("uploads")
+#     # return render_template("summarize_text_file_select.html", files = files)
+
+# @app.route("/fetch_questions_files", methods = ["GET"])
+# def return_question_files():
+#     return os.listdir("uploads")
+#     # return render_template("questions.html", files = files)
+
+# @app.route("/fetch_ask_questions_files", methods = ["GET"])
+# def return_ask_question_files():
+#     return os.listdir("uploads")
+#     # files = os.listdir("uploads")
+#     # return render_template("ask_questions.html", files = files)
 
 @app.route("/get_model_response", methods = ["GET"])
 def fetch_response():

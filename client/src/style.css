@@ -306,3 +306,43 @@
           #a6ffcb
   );
 }
+
+#summarizeSection {
+  background: linear-gradient(to right, rgb(0, 255, 255), rgb(9, 130, 130), rgb(6, 87, 87));
+  padding: 40px;
+  border-radius: 10px;
+  width: 750px;
+  height: 750px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  text-align: center;
+}
+
+.summary_text {
+  margin-top: 20px;
+}
+
+.summary {
+  max-width: 100%;
+  overflow: hidden;
+  word-wrap: break-word;
+}
+
+.stats {
+  max-width: 100%;
+  overflow: hidden;
+  word-wrap: break-word;
+  margin-top: 20px;
+}
+
+.stats ul {
+  list-style: none;
+  padding: 0;
+}
+
+.stats ul p {
+  margin: 0;
+}
