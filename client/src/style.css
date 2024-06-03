@@ -98,17 +98,17 @@
 }
 
 .intro__heading span {
-  background: rgb(0, 255, 255); /* fallback for old browsers */
+  background: rgb(0, 255, 255);
   background: -webkit-linear-gradient(
           to right,
           rgb(9, 130, 130),
           rgb(6, 87, 87)
-  ); /* Chrome 10-25, Safari 5.1-6 */
+  );
   background: linear-gradient(
           to right,
           rgb(87, 236, 236),
           rgb(6, 87, 87)
-  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  );
   background-size: 100%;
   -webkit-background-clip: text;
   -moz-background-clip: text;
@@ -118,17 +118,17 @@
 
 .intro__description {
   font-size: 45px;
-  background: aquamarine; /* fallback for old browsers */
+  background: aquamarine;
   background: -webkit-linear-gradient(
           to right,
           aquamarine,
           aquamarine
-  ); /* Chrome 10-25, Safari 5.1-6 */
+  );
   background: linear-gradient(
           to right,
           aquamarine,
           aquamarine
-  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  );
   background-size: 100%;
   -webkit-background-clip: text;
   -moz-background-clip: text;
@@ -283,19 +283,19 @@
 }
 
 .options__card:nth-child(2) {
-  background: #1fa2ff; /* fallback for old browsers */
+  background: #1fa2ff;
   background: -webkit-linear-gradient(
           to right,
           #a6ffcb,
           #12d8fa,
           #1fa2ff
-  ); /* Chrome 10-25, Safari 5.1-6 */
+  );
   background: linear-gradient(
           -225deg,
           #a6ffcb,
           #12d8fa,
           #245b81
-  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  );
 }
 
 .options__card:nth-child(3) {
@@ -307,7 +307,7 @@
   );
 }
 
-#summarizeSection {
+/* #summarizeSection {
   background: linear-gradient(to right, rgb(0, 255, 255), rgb(9, 130, 130), rgb(6, 87, 87));
   padding: 40px;
   border-radius: 10px;
@@ -345,4 +345,4 @@
 
 .stats ul p {
   margin: 0;
-}
+} */

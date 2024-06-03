@@ -6,13 +6,15 @@ import App from './App';
 import SummarySelection from './SummarySelection';
 import QGenerationSelection from "./QGenerationSelection"
 import QAnsweringSelection from "./QAnsweringSelection"
+import SummaryPage from './SummaryPage';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 const routes = [{path: "/", component: <App />}, 
                 {path: "/fetch_summarize_files", component: <SummarySelection />},
                 {path: "/fetch_questions_files", component: <QGenerationSelection />},
-                {path: "/fetch_ask_questions_files", component: <QAnsweringSelection />}]
+                {path: "/fetch_ask_questions_files", component: <QAnsweringSelection />}, 
+                {path: "/summary_page", component: <SummaryPage />}]
 
 root.render(
   <React.StrictMode>

@@ -10,7 +10,7 @@ app = Flask(__name__, static_url_path='/static')
 CORS(app)
 
 def extract_file_contents(file_name):
-    target_file = os.path.join("uploads", file_name)
+    target_file = os.path.join("../uploads", file_name)
     pdf_images = convert_to_image(target_file)
     text_contents = process_pdf_page(pdf_images) 
     return text_contents
@@ -25,9 +25,9 @@ def extract_file_contents(file_name):
 
 @app.route("/check_files", methods = ["GET"])
 def return_file_count():
-    if not os.path.exists("uploads"):
-        os.makedirs("uploads")
-    files = os.listdir("uploads")
+    if not os.path.exists("../uploads"):
+        os.makedirs("../uploads")
+    files = os.listdir("../uploads")
     if len(files) == 0:
         return jsonify({"filesExist": False})
     else:
@@ -39,9 +39,9 @@ def save_uploaded_file():
         if "upload" in request.files: # upload(for attribute of label tag, id and name of input tag)
             file = request.files["upload"]
             if file.filename.endswith(".pdf"):
-                if not os.path.exists("uploads"):
-                    os.makedirs("uploads")
-                file.save(os.path.join("uploads", file.filename))
+                if not os.path.exists("../uploads"):
+                    os.makedirs("../uploads")
+                file.save(os.path.join("../uploads", file.filename))
                 return jsonify({"status": "File uploaded successfully"})
             else:
                 return jsonify({"status": "Make sure you upload a PDF file only!"})
@@ -49,20 +49,21 @@ def save_uploaded_file():
 
 @app.route("/generate_summary", methods = ["GET"])
 def return_generated_text():
+    print(request.args.get("file"))
     text_contents = extract_file_contents(request.args.get("file"))
     text_statistics = calculate_text_statistics(text_contents)
     summarized_text = ""
     for text in text_contents:
         summarized_text += create_summary(" ".join(text_contents[text])) + " "
     summarized_text = summarized_text.strip()
-    return render_template("summarize_text.html", summarized_text=summarized_text, statistics= text_statistics)
+    return jsonify({"text": summarized_text, "statistics": text_statistics})
+    # return render_template("summarize_text.html", summarized_text=summarized_text, statistics= text_statistics)
 
 # Have an endpoint for fetching uploaded files from the database
 
 @app.route("/fetch_files", methods = ["GET"])
 def get_files():
-    print(os.listdir("uploads"))
-    return jsonify({"files": os.listdir("uploads")})
+    return jsonify({"files": os.listdir("../uploads")})
 
 # @app.route("/fetch_summarize_files", methods = ["GET"])
 # def return_summary_files():
