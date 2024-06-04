@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import { useNavigate } from 'react-router-dom'
+import "./styles/summary.css"
 
 export default function SummarySelection() {
 
@@ -31,7 +32,7 @@ export default function SummarySelection() {
             })
              .then(res => res.json())
              .then(data => {
-                // window.location.href = "/summary_page";
+                // when a component that is rendered with a specific route and needs props the data can be passed using an instance of the useNavigate() hook where the route needs to be passed in along with any data
                 navigate("/summary_page", {state: data})
              })
         } catch (error) {

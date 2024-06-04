@@ -33,7 +33,6 @@ export default function App() {
     })
       .then(res => res.json())
       .then(data => {
-        console.log(data);
         if (data.filesExist) {
           switch (page) {
             case "summary": window.location.href = "/fetch_summarize_files"; break;

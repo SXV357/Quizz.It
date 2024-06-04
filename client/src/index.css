@@ -34,6 +34,7 @@
   background-size: 100%;
   -webkit-background-clip: text;
   -moz-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   -moz-text-fill-color: transparent;
   display: flex;
@@ -112,8 +113,9 @@
   background-size: 100%;
   -webkit-background-clip: text;
   -moz-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
-  -mo-text-fill-color: transparent;
+  -moz-text-fill-color: transparent;
 }
 
 .intro__description {
@@ -132,54 +134,60 @@
   background-size: 100%;
   -webkit-background-clip: text;
   -moz-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   -moz-text-fill-color: transparent;
   padding-top: 20px;
 }
 
+/* Section */
 .intro__section {
+  max-width: 400px;
+  margin: 50px auto;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+/* Form */
+#uploadForm {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: white;
+  gap: 10px;
 }
 
-.file_upload_status {
-  margin-top: 10px;
-  font-size: 25px;
-  text-align: center;
-}
-
+/* File Input */
 .select__button {
-  margin: auto;
-  font-size: 15px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #fff;
   cursor: pointer;
-  margin-left: 70px;
 }
 
+/* Submit Button */
 .upload__button {
-  color: white;
-  font-size: 1rem;
-  background: #833ab4;
-  background: -webkit-linear-gradient(to right, rgb(0, 255, 255), rgb(9, 130, 130), rgb(6, 87, 87));
-  background: linear-gradient(to right, rgb(0, 255, 255), rgb(9, 130, 130), rgb(6, 87, 87));
-  padding: 15px 60px;
+  padding: 8px 16px;
   border: none;
   border-radius: 4px;
-  margin-top: 2rem;
+  font-size: 14px;
   cursor: pointer;
-  position: relative;
-  transition: all 0.35s;
-  outline: none;
+  background-color: #007bff;
+  color: #fff;
+  transition: background-color 0.3s ease;
+}
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
+.upload__button:hover {
+  background-color: #0056b3;
+}
 
-  margin-left: 70px;
+/* File Upload Status */
+.file_upload_status {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #fff;
+  text-align: center;
 }
 
 #quizzit {
@@ -212,6 +220,7 @@
   text-decoration-color: #ffb199;
   -webkit-background-clip: text;
   -moz-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   -moz-text-fill-color: transparent;
   margin-bottom: 5rem;
@@ -306,43 +315,3 @@
           #a6ffcb
   );
 }
-
-/* #summarizeSection {
-  background: linear-gradient(to right, rgb(0, 255, 255), rgb(9, 130, 130), rgb(6, 87, 87));
-  padding: 40px;
-  border-radius: 10px;
-  width: 750px;
-  height: 750px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  text-align: center;
-}
-
-.summary_text {
-  margin-top: 20px;
-}
-
-.summary {
-  max-width: 100%;
-  overflow: hidden;
-  word-wrap: break-word;
-}
-
-.stats {
-  max-width: 100%;
-  overflow: hidden;
-  word-wrap: break-word;
-  margin-top: 20px;
-}
-
-.stats ul {
-  list-style: none;
-  padding: 0;
-}
-
-.stats ul p {
-  margin: 0;
-} */
