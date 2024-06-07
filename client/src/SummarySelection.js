@@ -45,7 +45,7 @@ export default function SummarySelection() {
         <h2>Selection</h2>
         <form id="questionForm">
             <label htmlFor="summarizeFileSelect">Select a File That You Would Like to Summarize:</label>
-            <select id="summarizeFileSelect" name="summarizeFileSelect" multiple>
+            <select id="summarizeFileSelect" name="summarizeFileSelect">
                 {summarizeFiles.map((file, idx) => {
                     return <option key = {idx} value = {file}>{file}</option>
                 })}

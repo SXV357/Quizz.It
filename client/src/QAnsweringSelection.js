@@ -41,7 +41,7 @@ export default function QAnsweringSelection() {
     <div id="container">
         <form id="questionForm">
             <label htmlFor="askQuestionFileSelect">Select a file that you would like to ask questions about</label>
-            <select id="askQuestionFileSelect" name="askQuestionFileSelect" multiple>
+            <select id="askQuestionFileSelect" name="askQuestionFileSelect">
                 {questionAnsweringFiles.map((file, idx) => {
                     return <option key = {idx} value = {file}>{file}</option>
                 })}

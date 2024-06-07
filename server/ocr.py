@@ -7,7 +7,8 @@ import pyphen
 from math import *
 
 # converts all pages of PDF to PIL images and converts those images to numpy array for processing
-def convert_to_image(file_path):
+def convert_to_image(file_path: str):
+    # find a general package to handle this for all the supported document types
     page_images = convert_from_path(file_path) # array of PIL image objects
     manipulated_images = [np.array(page) for page in page_images]
     return manipulated_images
@@ -36,10 +37,14 @@ def process_pdf_page(pages):
         _, thresh_img = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         # run the page through pyseterract to extract the text contents
         extracted_text = pytesseract.image_to_string(thresh_img)
-        text_contents[f"Page {i + 1}"] = list(map(lambda t: str(t).strip(), list(filter(lambda x: x != "" and len(x) > 1 and not bool(pattern.match(x)), extracted_text.split("\n"))))) # this is an array of all the text contents
+        lines = extracted_text.split("\n")
+        lines = list(filter(lambda text: text not in ['Evaluation Only. Created with Aspose.Words. Copyright 2003-2024 Aspose Pty Ltd.', 'Created with an evaluation copy of Aspose.Words. To remove all limitations, you can use', 'Free Temporary License https://purchase.aspose.com/temporary-license/'], lines))
+        text_contents[f"Page {i + 1}"] = list(map(lambda t: str(t).strip(), list(filter(lambda x: bool(x.strip()) and not bool(pattern.match(x)), lines)))) # this is an array of all the text contents
+
     return text_contents
 
 def calculate_text_statistics(text_contents):
+    # find a package that can more efficiently calculate these statistics because the current version is quite inefficient
     num_words, num_chars, num_sentences, num_syllables = 0, 0, 0, 0
     pages = text_contents.keys()
     dic = pyphen.Pyphen(lang='en_US')

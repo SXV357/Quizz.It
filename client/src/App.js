@@ -14,15 +14,21 @@ export default function App() {
     setAskQuestionFileStatus("");
     let file_input = document.querySelector("#upload");
     let formData = new FormData();
-    formData.append("upload", file_input.files[0]);
-    fetch("http://127.0.0.1:5000/upload_file", {
-        method: "POST",
-        body: formData
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setFileUploadStatus(data.status);
+    if (!(file_input.files[0] === undefined)) {
+      // in case the file upload takes a long time
+      setFileUploadStatus("Upload in progress...");
+      formData.append("upload", file_input.files[0]);
+      fetch("http://127.0.0.1:5000/upload_file", {
+          method: "POST",
+          body: formData
       })
+        .then((res) => res.json())
+        .then((data) => {
+          setFileUploadStatus(data.status);
+        })
+    } else {
+      setFileUploadStatus("Make sure you have provided a file");
+    }
   }
 
   const determine_route = (e, page) => {
