@@ -4,9 +4,8 @@ from ocr import *
 import os
 from summary import create_summary # need to find a better model and fine-tune that
 from flask_cors import CORS
-from gpt import *
 import pypandoc # converting .txt and .docx to pdf(need to install the engine)
-import aspose.words as aw
+from fpdf import FPDF
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 FILE_DIR = "../uploads"
@@ -39,35 +38,49 @@ def return_file_count():
 @app.route("/upload_file", methods = ["POST"])
 def save_uploaded_file():
     # upload(for attribute of label tag, id and name of input tag)
-    if request.method == "POST" and "upload" in request.files:
-        if not os.path.exists(FILE_DIR):
-            os.makedirs(FILE_DIR)
-        file = request.files["upload"]
-        name = file.filename
-        if name[:name.index(".")] + ".pdf" in os.listdir(FILE_DIR):
-            return jsonify({"status": "This file already exists. Please select a different one and try again"})
-        extension = name[name.index(".") + 1:]
-        if extension not in ["pdf", "docx", "txt"]:
-            return jsonify({"status": "Make sure you upload a PDF, TXT, or DOCX file only!"})
-        file.save(os.path.join(FILE_DIR, name))
-        match extension:
-            case "docx":
-                output = pypandoc.convert_file(os.path.join(FILE_DIR, name), "pdf", outputfile=os.path.join(FILE_DIR, name[:name.index(".")] + ".pdf"), extra_args=['--pdf-engine=pdflatex'])
-                assert output == ""
-                os.remove(os.path.join(FILE_DIR, name))
-            case "txt":
-                doc = aw.Document(os.path.join(FILE_DIR, name))
-                doc.save(os.path.join(FILE_DIR, name[:name.index(".")] + ".pdf"))
-                os.remove(os.path.join(FILE_DIR, name))
-        return jsonify({"status": "File uploaded successfully"}) 
-    # return jsonify({"status": "Make sure you have provided a file"})
+    try:
+        if request.method == "POST" and "upload" in request.files:
+            if not os.path.exists(FILE_DIR):
+                os.makedirs(FILE_DIR)
+            file = request.files["upload"]
+            name = file.filename
+            if name[:name.index(".")] + ".pdf" in os.listdir(FILE_DIR):
+                return jsonify({"status": "This file already exists. Please select a different one and try again"})
+            extension = name[name.index(".") + 1:]
+            if extension not in ["pdf", "docx", "txt"]:
+                return jsonify({"status": "Make sure you upload a PDF, TXT, or DOCX file only!"})
+            file.save(os.path.join(FILE_DIR, name))
+            match extension:
+                case "docx":
+                    output = pypandoc.convert_file(os.path.join(FILE_DIR, name), "pdf", outputfile=os.path.join(FILE_DIR, name[:name.index(".")] + ".pdf"), extra_args=['--pdf-engine=pdflatex'])
+                    assert output == ""
+                    os.remove(os.path.join(FILE_DIR, name))
+                case "txt":
+                    pdf = FPDF()
+
+                    with open(os.path.join(FILE_DIR, name), "r") as new_file:
+                        lines = new_file.readlines()
+                        lines = list(map(lambda t: t.strip(), lines))
+
+                        pdf.set_auto_page_break(auto=True, margin=15)
+                        pdf.add_page()
+                        pdf.set_font("Arial", size=10)
+
+                        for line in lines:
+                            pdf.multi_cell(0, 5, line)
+                    
+                        pdf.output(os.path.join(FILE_DIR, name[:name.index(".")] + ".pdf")) 
+
+                    os.remove(os.path.join(FILE_DIR, name))
+            return jsonify({"status": "File uploaded successfully"}) 
+    except:
+        return jsonify({"status": "Error when uploading the file. Please try again!"})
 
 # Endpoint for generating summary of text and sending that back to the server along with the calculated text statistics
 
 @app.route("/generate_summary", methods = ["GET"])
 def return_generated_text():
     text_contents = extract_file_contents(request.args.get("file"))
-    # print(text_contents)
     text_statistics = calculate_text_statistics(text_contents)
     summarized_text = ""
     for text in text_contents:
@@ -90,8 +103,8 @@ def fetch_response():
     extracted_text = ""
     for content in text_contents:
         extracted_text += " ".join(text_contents[content])
-    response = answer_questions(extracted_text, query)
-    return jsonify({"response": response})
+    # response = answer_questions(extracted_text, query)
+    return jsonify({"response": ""})
 
 # Endpoint to handle the task of generating questions of specific types on a specific document the user chooses
 
@@ -104,7 +117,7 @@ def generate_questions_pdf():
     extracted_text = ""
     for content in text_contents:
         extracted_text += " ".join(text_contents[content])
-    response = generate_questions(extracted_text, question_types)
+    # response = generate_questions(extracted_text, question_types)
 
     if not os.path.exists("../generatedQuestions"):
         os.makedirs("../generatedQuestions")
@@ -114,7 +127,7 @@ def generate_questions_pdf():
     doc = fitz.open()
     page = doc._newPage(width=600, height=845)
     where = fitz.Point(45, 100)
-    page.insert_text(where, response, fontsize=8)
+    # page.insert_text(where, response, fontsize=8)
     doc.save(f"../generatedQuestions/{filename[:len(filename) - 4]}-generatedQuestions.pdf")
 
     return jsonify({"status": "PDF Generated Successfully"})

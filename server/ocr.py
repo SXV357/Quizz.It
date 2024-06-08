@@ -5,6 +5,8 @@ import pytesseract
 import re
 import pyphen
 from math import *
+from textblob import TextBlob
+from typing import Dict
 
 # converts all pages of PDF to PIL images and converts those images to numpy array for processing
 def convert_to_image(file_path: str):
@@ -13,7 +15,7 @@ def convert_to_image(file_path: str):
     manipulated_images = [np.array(page) for page in page_images]
     return manipulated_images
 
-def process_pdf_page(pages):
+def process_pdf_page(pages) -> Dict[str, list[str]]:
     text_contents = {}
     pattern = re.compile(r'^[!@#$%^&*(),.?":{}|<>]+$')
     for i in range(len(pages)):
@@ -37,26 +39,26 @@ def process_pdf_page(pages):
         _, thresh_img = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         # run the page through pyseterract to extract the text contents
         extracted_text = pytesseract.image_to_string(thresh_img)
-        lines = extracted_text.split("\n")
-        lines = list(filter(lambda text: text not in ['Evaluation Only. Created with Aspose.Words. Copyright 2003-2024 Aspose Pty Ltd.', 'Created with an evaluation copy of Aspose.Words. To remove all limitations, you can use', 'Free Temporary License https://purchase.aspose.com/temporary-license/'], lines))
-        text_contents[f"Page {i + 1}"] = list(map(lambda t: str(t).strip(), list(filter(lambda x: bool(x.strip()) and not bool(pattern.match(x)), lines)))) # this is an array of all the text contents
+        # filter out all empty strings include ones that are technically not empty but only have whitespace including
+        text_contents[f"Page {i + 1}"] = list(map(lambda t: str(t).strip(), list(filter(lambda x: bool(x.strip()) and not bool(pattern.match(x)), extracted_text.split("\n"))))) # this is an array of all the text contents
 
     return text_contents
 
-def calculate_text_statistics(text_contents):
-    # find a package that can more efficiently calculate these statistics because the current version is quite inefficient
+def calculate_text_statistics(text_contents) -> Dict[str, float]:
+    # text_contents is a dictionary that maps page numbers to the text contained in them
     num_words, num_chars, num_sentences, num_syllables = 0, 0, 0, 0
     pages = text_contents.keys()
     dic = pyphen.Pyphen(lang='en_US')
     for page in pages:
         text = text_contents[page]
-        for sentence in text:
-            num_sentences += 1
-            words = sentence.split(" ") # in one given sentence
-            num_words += len(words)
-            for i in range(len(words)):
-                num_chars += len(words[i])
-                num_syllables += len(dic.inserted(words[i]).split('-')) 
+        curr = TextBlob("\n".join(text))
+        words = list(filter(lambda word: not re.search(r'[a-zA-Z]', word) is None, curr.words))
+        for word in words:
+            num_chars += len(word)
+            num_syllables += len(dic.inserted(word).split('-')) 
+        num_words = len(words)
+        num_sentences = len(curr.sentences) 
+
     averageSyllablesPerWord = num_syllables / num_words
     averageWordsPerSentence = num_words / num_sentences
     return {"Number of words": num_words, "Average word length": num_chars // num_words, "Number of characters": num_chars, "Number of sentences": num_sentences, "Number of syllables": num_syllables, "Legibility index": round(abs(((averageWordsPerSentence * 1.015) + (averageSyllablesPerWord * 84.6)) - 206.835))}    
