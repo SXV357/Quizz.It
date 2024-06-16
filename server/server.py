@@ -1,3 +1,4 @@
+from collections import defaultdict
 import fitz
 from flask import Flask, jsonify, request
 from ocr import *
@@ -15,7 +16,7 @@ FILE_DIR = "../uploads"
 app = Flask(__name__)
 CORS(app)
 
-def extract_file_contents(file_name):
+def extract_file_contents(file_name: str) -> Dict[str, str]:
     target_file = os.path.join(FILE_DIR, file_name)
     pdf_images = convert_to_image(target_file)
     text_contents = process_pdf_page(pdf_images) 
@@ -44,12 +45,21 @@ def save_uploaded_file():
                 os.makedirs(FILE_DIR)
             file = request.files["upload"]
             name = file.filename
-            if name[:name.index(".")] + ".pdf" in os.listdir(FILE_DIR):
+            # if there's no extension associated with the file
+            if name.rfind(".") == -1:
+                return jsonify({"status": "You need to upload a file that has an extension"})
+            # if this file has already been uploaded previously
+            if name[:name.rfind(".")] + ".pdf" in os.listdir(FILE_DIR):
                 return jsonify({"status": "This file already exists. Please select a different one and try again"})
-            extension = name[name.index(".") + 1:]
+            extension = name[name.rfind(".") + 1:]
             if extension not in ["pdf", "docx", "txt"]:
                 return jsonify({"status": "Make sure you upload a PDF, TXT, or DOCX file only!"})
             file.save(os.path.join(FILE_DIR, name))
+            # once we have determined that the file is valid we check whether it is not empty otherwise teserract will throw an error
+            # we need a valid path to check this so we save the file first do the check and then get rid of it
+            if os.path.getsize(os.path.join(FILE_DIR, name)) == 0:
+                os.remove(os.path.join(FILE_DIR, name))
+                return jsonify({"status": "Please make sure you upload a non-empty document"})
             match extension:
                 case "docx":
                     output = pypandoc.convert_file(os.path.join(FILE_DIR, name), "pdf", outputfile=os.path.join(FILE_DIR, name[:name.index(".")] + ".pdf"), extra_args=['--pdf-engine=pdflatex'])
@@ -82,11 +92,12 @@ def save_uploaded_file():
 def return_generated_text():
     text_contents = extract_file_contents(request.args.get("file"))
     text_statistics = calculate_text_statistics(text_contents)
-    summarized_text = ""
-    for text in text_contents:
-        summarized_text += create_summary(" ".join(text_contents[text])) + " "
-    summarized_text = summarized_text.strip()
-    return jsonify({"text": summarized_text, "statistics": text_statistics})
+    summarized_text = defaultdict(str)
+    for page in text_contents:
+        summarized_text[page] = create_summary(text_contents[page])
+    print(summarized_text)
+    # returning a dictionary that contains a page-by-page summary of the document
+    return jsonify({"summarized_text": summarized_text, "statistics": text_statistics})
 
 # Endpoint for fetching all the files uploaded by the current user. Need to eventually transition to having user accounts and fetching files from a database instead of locally
 
