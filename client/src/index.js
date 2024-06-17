@@ -7,14 +7,20 @@ import SummarySelection from './SummarySelection';
 import QGenerationSelection from "./QGenerationSelection"
 import QAnsweringSelection from "./QAnsweringSelection"
 import SummaryPage from './SummaryPage';
+import SignUp from './SignUp';
+import Login from "./Login"
+import Landing from './Landing';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-const routes = [{path: "/", component: <App />}, 
+const routes = [{path: "/", component: <Landing />},
+                {path: "/sign_up", component: <SignUp />},
+                {path: "/login", component: <Login />},
+                {path: "/app", component: <App />},
                 {path: "/fetch_summarize_files", component: <SummarySelection />},
+                {path: "/summary_page", component: <SummaryPage />},
                 {path: "/fetch_questions_files", component: <QGenerationSelection />},
-                {path: "/fetch_ask_questions_files", component: <QAnsweringSelection />}, 
-                {path: "/summary_page", component: <SummaryPage />}]
+                {path: "/fetch_ask_questions_files", component: <QAnsweringSelection />}]
 
 root.render(
   <React.StrictMode>

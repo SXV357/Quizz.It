@@ -1,8 +1,7 @@
 import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth"
+import { getStorage } from "firebase/storage"
 // import { getAnalytics } from "firebase/analytics";
-
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
 const firebaseConfig = {
   apiKey: process.env.API_KEY,
@@ -16,4 +15,6 @@ const firebaseConfig = {
 
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
+// const auth = getAuth(app);
+// const storage = getStorage(app);
 // const analytics = getAnalytics(app);
