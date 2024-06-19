@@ -11,29 +11,18 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import { app } from './firebase';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
-export default function Login() {
+export default function ForgotPassword() {
   const defaultTheme = createTheme();
   const navigate = useNavigate();
-  const auth = getAuth(app);
 
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [currentEmail, setCurrentEmail] = useState("")
+  const [newPassword, setNewPassword] = useState("")
   const [validationStatus, setValidationStatus] = useState("")
 
-  async function handleSubmit(e) {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/app", {username: email.substring(0, email.indexOf("@"))})
-    } catch (e) {
-      switch (e.code) {
-        case "wrong-password": setValidationStatus("Wrong password. Please try again!"); break;
-        case "user-not-found": setValidationStatus("This user is non-existent. Please create an account and try again!"); break;
-      }
-    }
+    // check whether the email provided is a valid one and then update the password in the database
   }
 
   return (
@@ -52,32 +41,32 @@ export default function Login() {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign in
+            Forgot Password
           </Typography>
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
               margin="normal"
               required
               fullWidth
-              id="email"
+              id="currentEmail"
               label="Email Address"
-              name="email"
+              name="currentEmail"
               autoComplete="email"
               autoFocus
-              onChange = {(e) => setEmail(e.target.value)}
-              value = {email}
+              onChange = {(e) => setCurrentEmail(e.target.value)}
+              value = {currentEmail}
             />
             <TextField
               margin="normal"
               required
               fullWidth
-              name="password"
-              label="Password"
+              name="newPassword"
+              label="New Password"
               type="password"
-              id="password"
+              id="newPassword"
               autoComplete="current-password"
-              onChange = {(e) => setPassword(e.target.value)}
-              value = {password}
+              onChange = {(e) => setNewPassword(e.target.value)}
+              value = {newPassword}
             />
             <div className = "status" style = {{color: "rgb(255, 0, 0)", textAlign: "center"}}>{validationStatus}</div>
             <Button
@@ -86,17 +75,12 @@ export default function Login() {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign In
+              Reset Password
             </Button>
             <Grid container>
-              <Grid item xs>
-                <Link href="/forgot_password" variant="body2">
-                  Forgot password?
-                </Link>
-              </Grid>
               <Grid item>
-                <Link href="/sign_up" variant="body2">
-                  {"Don't have an account? Sign Up"}
+                <Link href="/login" variant="body2">
+                  {"Log into an existing account"}
                 </Link>
               </Grid>
             </Grid>

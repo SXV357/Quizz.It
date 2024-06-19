@@ -13,6 +13,11 @@ FILE_DIR = "../uploads"
 
 # explore popular LLMs that can be integrated with the application which can serve all the three tasks
 
+# potential logic for working with the pdf files stored in firebase storage
+    # obtain a download link to the pdf
+    # make a fetch request to it
+    # use pdf2image's convert_from_bytes function to get the images
+
 app = Flask(__name__)
 CORS(app)
 

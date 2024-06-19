@@ -10,12 +10,14 @@ import SummaryPage from './SummaryPage';
 import SignUp from './SignUp';
 import Login from "./Login"
 import Landing from './Landing';
+import ForgotPassword from "./ForgotPassword"
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 const routes = [{path: "/", component: <Landing />},
                 {path: "/sign_up", component: <SignUp />},
                 {path: "/login", component: <Login />},
+                {path: "/forgot_password", component: <ForgotPassword />},
                 {path: "/app", component: <App />},
                 {path: "/fetch_summarize_files", component: <SummarySelection />},
                 {path: "/summary_page", component: <SummaryPage />},

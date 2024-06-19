@@ -1,4 +1,6 @@
 import React, {useState} from "react";
+import { useLocation } from "react-router-dom";
+import {auth} from "./firebase"
 
 export default function App() {
 
@@ -6,6 +8,14 @@ export default function App() {
   const [summaryFileStatus, setSummaryFileStatus] = useState("");
   const [generateQuestionFileStatus, setGenerateQuestionFileStatus] = useState("");
   const [askQuestionFileStatus, setAskQuestionFileStatus] = useState("");
+
+  const location = useLocation();
+  const username = location.username;
+
+  async function signOut(e) {
+    e.preventDefault();
+    // sign user out and redirect them back to the login page
+  }
 
   const uploadFile = (e) => {
     e.preventDefault();
@@ -61,6 +71,7 @@ export default function App() {
       <nav className="navbar">
         <div className="navbar__container">
           <a href="#home" id="navbar__logo">QuizzIt</a>
+          <button onClick = {(e) => signOut(e)}>Sign Out</button>
           <div className="navbar__toggle" id="mobile-menu">
             <span className="bar"></span>
             <span className="bar"></span>
@@ -71,7 +82,7 @@ export default function App() {
 
       <div className="intro" id="home">
         <div className="intro__container">
-          <h1 className="intro__heading">Welcome to <span>QuizzIt</span></h1>
+          <h1 className="intro__heading">Welcome to <span>QuizzIt</span>{username}</h1>
           <p className="intro__description">Please Upload Your File Below</p>
         </div>
         <section className="intro__section">
