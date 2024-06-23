@@ -26,12 +26,29 @@ export default function Login() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/app", {username: email.substring(0, email.indexOf("@"))})
+      if (!email) {
+        setValidationStatus("The email field cannot be blank. Please enter a valid one and try again");
+        return;
+      } else if (!password) {
+        setValidationStatus("The password field cannot be blank. Please a valid one and try again!");
+        return;
+      }
+
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      if (user.emailVerified) {
+        navigate("/app", {state: user.email.substring(0, email.indexOf("@"))})
+      } else {
+        setValidationStatus("You need to verify your email before you can log in!");
+        return;
+      }
     } catch (e) {
+      console.log(e.code);
+      console.log(e.message);
       switch (e.code) {
-        case "wrong-password": setValidationStatus("Wrong password. Please try again!"); break;
-        case "user-not-found": setValidationStatus("This user is non-existent. Please create an account and try again!"); break;
+        case "auth/invalid-email": setValidationStatus("The provided email is not in the right format. Please enter a valid one and try again"); break;
+        case "auth/invalid-credential": setValidationStatus("The credentials you have entered are incorrect. Please try again!"); break;
       }
     }
   }

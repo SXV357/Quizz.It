@@ -12,21 +12,7 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { app } from './firebase';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { validateEmailFormat, validateEmailExistence } from './utils';
-
-// To-dos
-  // implement logic for email validation
-    // has to be of the right format
-    // has to be a valid existent email in the world wide web(need to find a way to check for this)
-  // implement logic for password checking as the user is typing in the password
-    // requirements:
-      // 1. 8 characters min - need regex for this
-      // 2. must contain atleast one lowercase character - need regex for this
-      // 3. must contain atleast one upppercase character - need regex for this
-      // 4. must contain atleast one special character - need regex for this
-      // 5. must contain atleast one number - need regex for this
-  // implement sign up user logic via firebase
+import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 
 export default function SignUp() {
   const defaultTheme = createTheme();
@@ -44,23 +30,33 @@ export default function SignUp() {
   const [hasNumber, setHasNumber] = useState(false)
 
   useEffect(() => {
-    setHasNumber(/^\d+$/.test(password))
+    setHasNumber(/\d/.test(password))
     setHasMinChars(password.length >= 8)
     setHasLowerCase(/[a-z]/.test(password))
     setHasUpperCase(/[A-Z]/.test(password))
     setHasSpecial(/[!@#$%^&*()\-+={}[\]:;"'<>,.?\/|\\]/.test(password))
   }, [password])
 
+  function validateEmail(email) {
+    return fetch(`http://127.0.0.1:5000/check-email-validity?email=${email}`, {
+      method: "GET"
+    })
+      .then(res => {
+        return res.json()
+      })
+      .then(data => {
+        return {result: data.result, status: data.status};
+      })
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     try {
       // email checks
-      if (!validateEmailFormat(email)) {
-        setValidationStatus("Invalid email format. Please enter a valid one and try again!");
-        return;
-      }
-      if (!validateEmailExistence(email)) {
-        setValidationStatus("This email is non-existent. Make sure you enter an existent one!");
+      const emailCheck = await validateEmail(email);
+      const {result, status} = emailCheck;
+      if (!(status == 200)) {
+        setValidationStatus(result);
         return;
       }
 
@@ -87,11 +83,19 @@ export default function SignUp() {
       }
 
       await createUserWithEmailAndPassword(auth, email, password);
-      navigate("/login")
+      await sendEmailVerification(auth.currentUser)
+        .then(() => {
+          setValidationStatus("Email verification link sent successfully");
+          setTimeout(() => navigate("/login"), 3500)
+        })
+        .catch(() => {
+          setValidationStatus("There was an error when sending the email verification link. Please try again!");
+          return;
+        })
 
       // create the user now
     } catch (e) {
-      if (e.code == "email-already-in-use") {
+      if (e.code == "auth/email-already-in-use") {
         setValidationStatus("An account already exists with this email address. Please enter a valid one and try again!")
       }
     }

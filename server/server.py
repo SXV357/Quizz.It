@@ -7,6 +7,8 @@ from summary import create_summary # need to find a better model and fine-tune t
 from flask_cors import CORS
 import pypandoc # converting .txt and .docx to pdf(need to install the engine)
 from fpdf import FPDF
+from email_validator import validate_email, EmailNotValidError
+import logging
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 FILE_DIR = "../uploads"
@@ -20,6 +22,8 @@ FILE_DIR = "../uploads"
 
 app = Flask(__name__)
 CORS(app)
+
+logging.basicConfig(level=logging.DEBUG)
 
 def extract_file_contents(file_name: str) -> Dict[str, str]:
     target_file = os.path.join(FILE_DIR, file_name)
@@ -39,6 +43,18 @@ def return_file_count():
     else:
         return jsonify({"filesExist": True})
 
+@app.route("/check-email-validity", methods = ["GET"])
+def check_validity():
+    email = request.args.get("email")
+    try:
+        res = validate_email(email, check_deliverability=True)
+        return jsonify({"result": res.normalized, "status": 200})
+    except EmailNotValidError as err:
+        print(f"Error: {err}")
+        return jsonify({"result": str(err), "status": 500})
+    except Exception:
+        return jsonify({"result": "Internal server error", "status": 500})
+    
 # Endpoint to handle the file upload to the specific folder
 
 @app.route("/upload_file", methods = ["POST"])
