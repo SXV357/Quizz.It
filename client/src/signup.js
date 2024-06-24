@@ -11,17 +11,20 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import { app } from './firebase';
-import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import { auth } from './firebase';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { InputAdornment } from '@mui/material';
 
 export default function SignUp() {
   const defaultTheme = createTheme();
   const navigate = useNavigate();
-  const auth = getAuth(app);
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [validationStatus, setValidationStatus] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
   const [hasMinChars, setHasMinChars] = useState(false)
   const [hasLowercase, setHasLowerCase] = useState(false)
@@ -139,11 +142,18 @@ export default function SignUp() {
                   fullWidth
                   name="password"
                   label="Password"
-                  type="password"
+                  type= {showPassword ? "text" : "password"}
                   id="password"
                   autoComplete="new-password"
                   onChange = {(e) => setPassword(e.target.value)}
                   value = {password}
+                  InputProps = {{
+                    endAdornment: (
+                      <InputAdornment position = "end">
+                        <div onClick = {() => setShowPassword((prev) => !prev)}>{!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}</div>
+                      </InputAdornment>
+                    )
+                  }}
                 />
               </Grid>
               <div className = "pw-reqs" style = {{display: "grid", gridTemplateRows: "repeat(3, 1fr)", gridTemplateColumns: "repeat(2, 1fr)", margin: "0 auto", marginTop: "10px", columnGap: "15px"}}>

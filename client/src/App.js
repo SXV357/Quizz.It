@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {app} from "./firebase"
-import { getAuth, signOut } from "firebase/auth";
+import {auth} from "./firebase"
+import { signOut } from "firebase/auth";
 
 export default function App() {
 
@@ -13,7 +13,6 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const username = location.state;
-  const auth = getAuth(app);
 
   async function logOut(e) {
     e.preventDefault();

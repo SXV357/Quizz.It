@@ -8,22 +8,35 @@ from flask_cors import CORS
 import pypandoc # converting .txt and .docx to pdf(need to install the engine)
 from fpdf import FPDF
 from email_validator import validate_email, EmailNotValidError
-import logging
-
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-FILE_DIR = "../uploads"
-
-# explore popular LLMs that can be integrated with the application which can serve all the three tasks
+import firebase_admin
+from firebase_admin import auth, credentials
+from dotenv import load_dotenv
 
 # potential logic for working with the pdf files stored in firebase storage
     # obtain a download link to the pdf
     # make a fetch request to it
     # use pdf2image's convert_from_bytes function to get the images
 
+load_dotenv()
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+FILE_DIR = "../uploads"
+
+firebase_admin.initialize_app(
+    credentials.Certificate({ \
+        "type": "service_account", \
+        "project_id": os.environ.get('PROJECT_ID'), \
+        "private_key_id": os.environ.get('PRIVATE_KEY_ID'), \
+        "private_key": os.environ.get('PRIVATE_KEY').replace('\\n', '\n'), \
+        "client_email": os.environ.get('CLIENT_EMAIL'), \
+        "client_id": os.environ.get('CLIENT_ID'), \
+        "auth_uri": os.environ.get('AUTH_URI'), \
+        "token_uri": os.environ.get('TOKEN_URI'), \
+        "auth_provider_x509_cert_url": os.environ.get('AUTH_PROVIDER_X509_CERT_URL'), \
+        "client_x509_cert_url": os.environ.get('CLIENT_X509_CERT_URL'), \
+    }))
 app = Flask(__name__)
 CORS(app)
 
-logging.basicConfig(level=logging.DEBUG)
 
 def extract_file_contents(file_name: str) -> Dict[str, str]:
     target_file = os.path.join(FILE_DIR, file_name)
@@ -54,6 +67,18 @@ def check_validity():
         return jsonify({"result": str(err), "status": 500})
     except Exception:
         return jsonify({"result": "Internal server error", "status": 500})
+
+@app.route("/firebase-email-existence", methods = ["GET"])
+def verify_email():
+    email = request.args.get("email")
+    try:
+        user_record = auth.get_user_by_email(email)
+        print(user_record)
+        return jsonify({"status": "Success"})
+    except ValueError:
+        return jsonify({"status": "Invalid email format. Please enter a valid one and try again!"})
+    except auth.UserNotFoundError:
+        return jsonify({"status": "This email is non-existent. Please enter a valid one and try again!"})
     
 # Endpoint to handle the file upload to the specific folder
 

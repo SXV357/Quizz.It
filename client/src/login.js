@@ -11,26 +11,29 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import { app } from './firebase';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from './firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { InputAdornment } from '@mui/material';
 
 export default function Login() {
   const defaultTheme = createTheme();
   const navigate = useNavigate();
-  const auth = getAuth(app);
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [validationStatus, setValidationStatus] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault();
     try {
       if (!email) {
-        setValidationStatus("The email field cannot be blank. Please enter a valid one and try again");
+        setValidationStatus("The email cannot be blank. Please enter a valid one and try again!");
         return;
       } else if (!password) {
-        setValidationStatus("The password field cannot be blank. Please a valid one and try again!");
+        setValidationStatus("The password cannot be blank. Please enter a valid one and try again!");
         return;
       }
 
@@ -47,8 +50,17 @@ export default function Login() {
       console.log(e.code);
       console.log(e.message);
       switch (e.code) {
-        case "auth/invalid-email": setValidationStatus("The provided email is not in the right format. Please enter a valid one and try again"); break;
-        case "auth/invalid-credential": setValidationStatus("The credentials you have entered are incorrect. Please try again!"); break;
+        case "auth/invalid-email": 
+          setValidationStatus("The provided email is not in the right format. Please enter a valid one and try again"); break;
+        // case "auth/invalid-password": 
+        //   setValidationStatus("The provided password is incorrect. Please try again!");
+        //   break;
+        case "auth/too-many-requests":
+          setValidationStatus("Too many log in attempts. Please wait for a few minutes and try again!");
+          break;
+        case "auth/invalid-credential": 
+          setValidationStatus("The credentials you have entered are either non-existent or wrong. Please try again!"); 
+          break;
       }
     }
   }
@@ -90,11 +102,18 @@ export default function Login() {
               fullWidth
               name="password"
               label="Password"
-              type="password"
+              type= {showPassword ? "text" : "password"}
               id="password"
               autoComplete="current-password"
               onChange = {(e) => setPassword(e.target.value)}
               value = {password}
+              InputProps = {{
+                endAdornment: (
+                  <InputAdornment position = "end">
+                    <div onClick = {() => setShowPassword((prev) => !prev)}>{!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}</div>
+                  </InputAdornment>
+                )
+              }}
             />
             <div className = "status" style = {{color: "rgb(255, 0, 0)", textAlign: "center"}}>{validationStatus}</div>
             <Button
