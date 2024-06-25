@@ -3,7 +3,6 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -14,7 +13,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { InputAdornment } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { auth } from './firebase';
+import {collection, query, where, getDocs, updateDoc} from "firebase/firestore"
+import { auth, db } from './firebase';
 import { updatePassword } from 'firebase/auth';
 
 export default function ForgotPassword() {
@@ -88,20 +88,39 @@ export default function ForgotPassword() {
 
           // check if the new password is the same as the old one and if not only then update
           // when new user is created store their username and password in firestore and then reference that when doing this
-          
-          // await updatePassword(auth.currentUser, newPassword)
-          //   .then(() => {
-          //     setValidationStatus("Password updated successfully");
-          //     setValidationStatus("Redirecting you to the login page...")
-          //     setTimeout(() => navigate("/login"), 1500)
-          //   })
 
+          const q = query(collection(db, "users"), where("email", "==", email));
+          const snapshot = await getDocs(q);
+          snapshot.forEach(async (doc) => {
+            const data = doc.data();
+            if (data.password === newPassword) {
+              setValidationStatus("The new password cannot be the same as your previous one. Please use a different one and try again!");
+              return;
+            } else {
+              if (auth.currentUser === null) {
+                setValidationStatus("You must have logged in atleast once prior to resetting your password");
+                return;
+              }
+              await updatePassword(auth.currentUser, newPassword)
+                .then(() => {
+                  const ref = doc.ref;
+                  updateDoc(ref, {password: newPassword});
+                  setValidationStatus("Password updated successfully");
+                  setValidationStatus("Signing you out and redirecting to the login page...");
+                  setTimeout(() => navigate("/login"), 1500)
+                })
+                .catch((e) => {
+                  setValidationStatus("Internal server error when updating password");
+                  return;
+                })
+            }
+          })
         }
       }
     } catch (e) {
       console.log(e.message);
       console.log(e.code);
-      if (e.code == "auth/missing-email") {
+      if (e.code === "auth/missing-email") {
         setValidationStatus("The email you have entered is invalid. Please enter a valid one and try again!");
         return;
       }
@@ -176,11 +195,6 @@ export default function ForgotPassword() {
               Reset Password
             </Button>
             <Grid container>
-              <Grid item>
-                <Link href="/login" variant="body2">
-                  {"Log into an existing account"}
-                </Link>
-              </Grid>
             </Grid>
           </Box>
         </Box>

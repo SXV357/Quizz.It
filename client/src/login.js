@@ -47,14 +47,11 @@ export default function Login() {
         return;
       }
     } catch (e) {
-      console.log(e.code);
-      console.log(e.message);
+      // console.log(e.code);
+      // console.log(e.message);
       switch (e.code) {
         case "auth/invalid-email": 
           setValidationStatus("The provided email is not in the right format. Please enter a valid one and try again"); break;
-        // case "auth/invalid-password": 
-        //   setValidationStatus("The provided password is incorrect. Please try again!");
-        //   break;
         case "auth/too-many-requests":
           setValidationStatus("Too many log in attempts. Please wait for a few minutes and try again!");
           break;
@@ -125,11 +122,6 @@ export default function Login() {
               Sign In
             </Button>
             <Grid container>
-              <Grid item xs>
-                <Link href="/forgot_password" variant="body2">
-                  Forgot password?
-                </Link>
-              </Grid>
               <Grid item>
                 <Link href="/sign_up" variant="body2">
                   {"Don't have an account? Sign Up"}

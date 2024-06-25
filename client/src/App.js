@@ -80,6 +80,7 @@ export default function App() {
         <div className="navbar__container">
           <a href="#home" id="navbar__logo">QuizzIt</a>
           <button onClick = {(e) => logOut(e)}>Sign Out</button>
+          <button onClick = {() => navigate("/forgot_password")}>Forgot Password?</button>
           <div className="navbar__toggle" id="mobile-menu">
             <span className="bar"></span>
             <span className="bar"></span>

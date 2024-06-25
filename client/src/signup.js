@@ -11,8 +11,9 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import { auth } from './firebase';
+import { auth, db } from './firebase';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import {addDoc, collection} from "firebase/firestore"
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { InputAdornment } from '@mui/material';
@@ -58,7 +59,7 @@ export default function SignUp() {
       // email checks
       const emailCheck = await validateEmail(email);
       const {result, status} = emailCheck;
-      if (!(status == 200)) {
+      if (!(status === 200)) {
         setValidationStatus(result);
         return;
       }
@@ -86,9 +87,14 @@ export default function SignUp() {
       }
 
       await createUserWithEmailAndPassword(auth, email, password);
+      await addDoc(collection(db, "users"), {
+        "email": email,
+        "password": password
+      })
       await sendEmailVerification(auth.currentUser)
         .then(() => {
           setValidationStatus("Email verification link sent successfully");
+          setValidationStatus("Redirecting you to the login page...");
           setTimeout(() => navigate("/login"), 3500)
         })
         .catch(() => {
@@ -98,7 +104,7 @@ export default function SignUp() {
 
       // create the user now
     } catch (e) {
-      if (e.code == "auth/email-already-in-use") {
+      if (e.code === "auth/email-already-in-use") {
         setValidationStatus("An account already exists with this email address. Please enter a valid one and try again!")
       }
     }
