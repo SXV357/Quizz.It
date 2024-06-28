@@ -1,7 +1,8 @@
 import React, {useState} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {auth} from "./firebase"
+import {auth, storage} from "./firebase"
 import { signOut } from "firebase/auth";
+import {ref, uploadBytes} from "firebase/storage"
 
 export default function App() {
 
@@ -34,9 +35,15 @@ export default function App() {
     let formData = new FormData();
     if (!(file_input.files[0] === undefined)) {
       // in case the file upload takes a long time
+      // const fileStorage = ref(storage, `${username}/${file_input.files[0].name}`)
+      //  uploadBytes(fileStorage, file_input.files[0])
+      //    .then((snapshot) => {
+      //      console.log(snapshot);
+      //      setFileUploadStatus("File uploaded successfully");
+      //    })
       setFileUploadStatus("Upload in progress...");
       formData.append("upload", file_input.files[0]);
-      fetch("http://127.0.0.1:5000/upload_file", {
+      fetch(`http://127.0.0.1:5000/upload_file?username=${username}`, {
           method: "POST",
           body: formData
       })

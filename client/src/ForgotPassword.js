@@ -3,8 +3,8 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
+import Link from '@mui/material/Link';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
@@ -39,27 +39,14 @@ export default function ForgotPassword() {
     setHasUpperCase(/[A-Z]/.test(newPassword))
     setHasSpecial(/[!@#$%^&*()\-+={}[\]:;"'<>,.?\/|\\]/.test(newPassword))
   }, [newPassword])
-  
-  function checkEmailExistenceForReset() {
-    return fetch(`http://127.0.0.1:5000/firebase-email-existence?email=${email}`, {
-      method: "GET"
-    })
-      .then(res => {
-        return res.json()
-      })
-      .then(data => {
-        return data.status;
-      })
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      const status = await checkEmailExistenceForReset(email);
-      if (!(status === "Success")) {
-        setValidationStatus(status);
-        return;
-      } else {
+        if (!email) {
+          setValidationStatus("The email cannot be blank. Please enter a valid one and try again!");
+          return;
+        }
         if (!newPassword) {
           setValidationStatus("The new password cannot be blank. Please enter a valid one and try again!");
           return;
@@ -91,7 +78,12 @@ export default function ForgotPassword() {
 
           const q = query(collection(db, "users"), where("email", "==", email));
           const snapshot = await getDocs(q);
-          snapshot.forEach(async (doc) => {
+          const docs = snapshot.docs;
+          if (docs.length === 0) {
+            setValidationStatus("This email is non-existent. Please enter a valid one and try again!");
+            return;
+          } else {
+            const doc = docs[0];
             const data = doc.data();
             if (data.password === newPassword) {
               setValidationStatus("The new password cannot be the same as your previous one. Please use a different one and try again!");
@@ -114,12 +106,11 @@ export default function ForgotPassword() {
                   return;
                 })
             }
-          })
+          }
         }
-      }
     } catch (e) {
-      console.log(e.message);
-      console.log(e.code);
+      // console.log(e.message);
+      // console.log(e.code);
       if (e.code === "auth/missing-email") {
         setValidationStatus("The email you have entered is invalid. Please enter a valid one and try again!");
         return;
@@ -194,8 +185,6 @@ export default function ForgotPassword() {
             >
               Reset Password
             </Button>
-            <Grid container>
-            </Grid>
           </Box>
         </Box>
       </Container>

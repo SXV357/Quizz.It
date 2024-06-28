@@ -1,6 +1,6 @@
 from collections import defaultdict
 import fitz
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from ocr import *
 import os
 from summary import create_summary # need to find a better model and fine-tune that
@@ -9,13 +9,15 @@ import pypandoc # converting .txt and .docx to pdf(need to install the engine)
 from fpdf import FPDF
 from email_validator import validate_email, EmailNotValidError
 import firebase_admin
-from firebase_admin import auth, credentials
+from firebase_admin import auth, credentials, storage
 from dotenv import load_dotenv
 
 # potential logic for working with the pdf files stored in firebase storage
     # obtain a download link to the pdf
     # make a fetch request to it
     # use pdf2image's convert_from_bytes function to get the images
+
+# uploading workflow
 
 load_dotenv()
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -33,10 +35,11 @@ firebase_admin.initialize_app(
         "token_uri": os.environ.get('TOKEN_URI'), \
         "auth_provider_x509_cert_url": os.environ.get('AUTH_PROVIDER_X509_CERT_URL'), \
         "client_x509_cert_url": os.environ.get('CLIENT_X509_CERT_URL'), \
-    }))
+    }), {'storageBucket': os.environ.get('STORAGE_BUCKET')})
+
 app = Flask(__name__)
 CORS(app)
-
+bucket = storage.bucket()
 
 def extract_file_contents(file_name: str) -> Dict[str, str]:
     target_file = os.path.join(FILE_DIR, file_name)
@@ -68,44 +71,73 @@ def check_validity():
     except Exception:
         return jsonify({"result": "Internal server error", "status": 500})
 
-@app.route("/firebase-email-existence", methods = ["GET"])
-def verify_email():
-    email = request.args.get("email")
-    try:
-        user_record = auth.get_user_by_email(email)
-        print(user_record)
-        return jsonify({"status": "Success"})
-    except ValueError:
-        return jsonify({"status": "Invalid email format. Please enter a valid one and try again!"})
-    except auth.UserNotFoundError:
-        return jsonify({"status": "This email is non-existent. Please enter a valid one and try again!"})
+# @app.route("/firebase-email-existence", methods = ["GET"])
+# def verify_email():
+#     email = request.args.get("email")
+#     try:
+#         user_record = auth.get_user_by_email(email)
+#         print(user_record)
+#         return jsonify({"status": "Success"})
+#     except ValueError:
+#         return jsonify({"status": "Invalid email format. Please enter a valid one and try again!"})
+#     except auth.UserNotFoundError:
+#         return jsonify({"status": "This email is non-existent. Please enter a valid one and try again!"})
     
 # Endpoint to handle the file upload to the specific folder
+
+# @app.route("/upload", methods = ["POST"])
+# def upload_file():
+#     if request.method == "POST" and "upload" in request.files:
+#         try:
+#             file = request.files["upload"]
+#             bucket = storage.bucket()
+#             blob = bucket.blob(file.filename)
+#             blob.upload_from_file(file, content_type=file.content_type)
+#             return jsonify({"status": "File uploaded successfully"})
+#         except Exception as e:
+#             print(e)
+#             return jsonify({"status": "Error when uploading file"})
+
+# fetch all the files for this user and used to check if the uploaded file matches the one in firebase
+
+# blobs = bucket.list_blobs(prefix=f"{username}/")
+# for blob in blobs:
+#     print(blob.name)
 
 @app.route("/upload_file", methods = ["POST"])
 def save_uploaded_file():
     # upload(for attribute of label tag, id and name of input tag)
     try:
         if request.method == "POST" and "upload" in request.files:
+            username = request.args.get("username")
+
             if not os.path.exists(FILE_DIR):
                 os.makedirs(FILE_DIR)
+
             file = request.files["upload"]
             name = file.filename
+
             # if there's no extension associated with the file
             if name.rfind(".") == -1:
                 return jsonify({"status": "You need to upload a file that has an extension"})
+            
             # if this file has already been uploaded previously
             if name[:name.rfind(".")] + ".pdf" in os.listdir(FILE_DIR):
                 return jsonify({"status": "This file already exists. Please select a different one and try again"})
+            
             extension = name[name.rfind(".") + 1:]
             if extension not in ["pdf", "docx", "txt"]:
                 return jsonify({"status": "Make sure you upload a PDF, TXT, or DOCX file only!"})
+            
             file.save(os.path.join(FILE_DIR, name))
             # once we have determined that the file is valid we check whether it is not empty otherwise teserract will throw an error
             # we need a valid path to check this so we save the file first do the check and then get rid of it
             if os.path.getsize(os.path.join(FILE_DIR, name)) == 0:
                 os.remove(os.path.join(FILE_DIR, name))
                 return jsonify({"status": "Please make sure you upload a non-empty document"})
+
+            # need to figure out a way to do the conversions in memory for word and txt files and send them to the frontend so they can be uploaded to the storage bucket
+            
             match extension:
                 case "docx":
                     output = pypandoc.convert_file(os.path.join(FILE_DIR, name), "pdf", outputfile=os.path.join(FILE_DIR, name[:name.index(".")] + ".pdf"), extra_args=['--pdf-engine=pdflatex'])
