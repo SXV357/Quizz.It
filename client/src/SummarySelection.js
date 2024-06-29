@@ -1,14 +1,16 @@
 import React, {useState, useEffect} from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import "./styles/summary.css"
 
 export default function SummarySelection() {
 
     const [summarizeFiles, setSummarizeFiles] = useState([])
     const navigate = useNavigate();
+    const location = useLocation();
+    const username = location.state;
 
     useEffect(() => {
-        fetch("http://127.0.0.1:5000/fetch_files", {
+        fetch(`http://127.0.0.1:5000/fetch_files?username=${username}`, {
             method: "GET"
         })
          .then(res => res.json())
@@ -50,11 +52,11 @@ export default function SummarySelection() {
                     return <option key = {idx} value = {file}>{file}</option>
                 })}
             </select>
-            <button type="button" id="summarizeFileButton" onClick = {(e) => summarize(e)}>Summarize This File</button>
+            <button type="button" id="summarizeFileButton" onClick = {() => console.log("summarize the file")}>Summarize This File</button>
         </form>
         <button className = "toHomePage" type = "button" onClick = {(e) => {
           e.preventDefault();
-          window.location.href = "/";
+          navigate("/app", {state: username});
         }}>Go to Home Page</button>
         <div className = "summarizeFileStatus"></div>
     </div>

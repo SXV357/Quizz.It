@@ -1,11 +1,15 @@
 import React, {useState, useEffect} from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 export default function QAnsweringSelection() {
 
   const [questionAnsweringFiles, setQuestionAnsweringFiles] = useState([])
+  const navigate = useNavigate();
+  const location = useLocation();
+  const username = location.state;
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/fetch_files", {
+    fetch(`http://127.0.0.1:5000/fetch_files?username=${username}`, {
         method: "GET"
     })
      .then(res => res.json())
@@ -48,11 +52,11 @@ export default function QAnsweringSelection() {
             </select>
             <input placeholder = "What is your question?" type = "text" id="questionInput" />
 
-            <button type="button" id="getResponseButton" onClick = {(e) => getAnswer(e)}>Submit Query</button>
+            <button type="button" id="getResponseButton" onClick = {() => console.log("submit query")}>Submit Query</button>
         </form>
         <button className = "toHomePage" type = "button" onClick = {(e) => {
           e.preventDefault();
-          window.location.href = "/";
+          navigate("/app", {state: username});
         }}>Go To Home Page</button>
         <div className = "askQuestionResponse"></div>
     </div>

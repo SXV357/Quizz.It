@@ -1,11 +1,15 @@
 import React, {useState, useEffect} from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 export default function QGenerationSelection() {
 
   const [questionGenerationFiles, setQuestionGenerationFiles] = useState([])
+  const navigate = useNavigate();
+  const location = useLocation();
+  const username = location.state;
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/fetch_files", {
+    fetch(`http://127.0.0.1:5000/fetch_files?username=${username}`, {
         method: "GET"
     })
      .then(res => res.json())
@@ -53,11 +57,11 @@ export default function QGenerationSelection() {
                 })}
             </select>
 
-            <button type="button" id="generateQuestionsButton" onClick = {(e) => generateQuestions(e)}>Generate Questions</button>
+            <button type="button" id="generateQuestionsButton" onClick = {() => console.log("generate questions")}>Generate Questions</button>
         </form>
         <button className = "toHomePage" type = "button" onClick = {(e) => {
           e.preventDefault();
-          window.location.href = "/";
+          navigate("/app", {state: username});
         }}>Go To Home Page</button>
         <div className = "generatePDFStatus"></div>
     </div>

@@ -26,6 +26,7 @@ export default function App() {
       .catch(err => console.log(err));
   }
 
+  // will make a post request to the backend sendint the file and then retrieve a pdf version of the file to be uploaded to firebase storage
   const uploadFile = (e) => {
     e.preventDefault();
     setSummaryFileStatus("");
@@ -59,23 +60,23 @@ export default function App() {
   const determine_route = (e, page) => {
     // on the backend the logic will be implemented such that the number of uploaded documents for this user will be fetched and depending on that a status message will be updated
     e.preventDefault();
-    fetch("http://127.0.0.1:5000/check_files", {
+    fetch(`http://127.0.0.1:5000/check_files?username=${username}`, {
         method: "GET"
     })
       .then(res => res.json())
       .then(data => {
         if (data.filesExist) {
           switch (page) {
-            case "summary": window.location.href = "/fetch_summarize_files"; break;
-            case "generate_questions": window.location.href = "/fetch_questions_files"; break;
-            case "ask_questions": window.location.href = "/fetch_ask_questions_files"; break;
+            case "summary": navigate("/fetch_summarize_files", {state: username}); break;
+            case "questionGeneration": navigate("/fetch_questions_files", {state: username}); break;
+            case "chatbot": navigate("/fetch_ask_questions_files", {state: username}); break;
           }
         }
         else {
           switch (page) {
             case "summary": setSummaryFileStatus("You haven't uploaded any files yet!"); break;
-            case "generate_questions": setGenerateQuestionFileStatus("You haven't uploaded any files yet!"); break;
-            case "ask_questions": setAskQuestionFileStatus("You haven't uploaded any files yet!"); break;
+            case "questionGeneration": setGenerateQuestionFileStatus("You haven't uploaded any files yet!"); break;
+            case "chatbot": setAskQuestionFileStatus("You haven't uploaded any files yet!"); break;
           }
         }
       })
@@ -123,13 +124,13 @@ export default function App() {
             <div className="options__card">
                 <h2>Studying for a test?</h2>
                 <p>We can quiz you!</p>
-                <div className="questions_button"><button onClick = {(e) => determine_route(e, "generate_questions")}>Generate Test Questions</button></div>
+                <div className="questions_button"><button onClick = {(e) => determine_route(e, "questionGeneration")}>Generate Test Questions</button></div>
                 <div className="generateQuestionFilesStatus">{generateQuestionFileStatus}</div>
             </div>
             <div className="options__card">
                 <h2>Have questions about the document?</h2>
                 <p>We can help you with that</p>
-                <div className="ask_question_button"><button onClick = {(e) => determine_route(e, "ask_questions")}>Ask a Question</button></div>
+                <div className="ask_question_button"><button onClick = {(e) => determine_route(e, "chatbot")}>Ask a Question</button></div>
                 <div className="askQuestionFilesStatus">{askQuestionFileStatus}</div>
             </div>
         </div>
