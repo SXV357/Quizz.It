@@ -1,6 +1,8 @@
 import React, {useState, useEffect} from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import "./styles/summary.css"
+// import { storage } from './firebase'
+// import {ref, listAll, getDownloadURL} from "firebase/storage"
 
 export default function SummarySelection() {
 
@@ -17,7 +19,7 @@ export default function SummarySelection() {
          .then(data => setSummarizeFiles(data.files))
     }, [])
 
-    const summarize = (e) => {
+    const summarize = async (e) => {
         e.preventDefault();
         let fileType = document.getElementById("summarizeFileSelect");
         let summarizeFileStatus = document.querySelector(".summarizeFileStatus");
@@ -26,19 +28,20 @@ export default function SummarySelection() {
             summarizeFileStatus.innerHTML = "You need to select a file!";
             return;
         }
+        // console.log(`selected file: ${selectedFile}`)
         summarizeFileStatus.innerHTML = "Loading...";
         try {
             // window.location.href = `/generate_summary?file=${selectedFile}`;
-            fetch(`http://127.0.0.1:5000/generate_summary?file=${selectedFile}`, {
+            fetch(`http://127.0.0.1:5000/generate_summary?username=${username}&file=${selectedFile}`, {
                 method: "GET"
             })
-             .then(res => res.json())
-             .then(data => {
-                // when a component that is rendered with a specific route and needs props the data can be passed using an instance of the useNavigate() hook where the route needs to be passed in along with any data
+            .then(res => res.json())
+            .then(data => {
+                // when a component that is rendered with a specific route and needs props the data can passed using an instance of the useNavigate() hook where the route needs to be passed i
                 navigate("/summary_page", {state: data})
-             })
+            })
         } catch (error) {
-            summarizeFileStatus.innerHTML = "An error occurred when generating the summary. Please try again";
+            summarizeFileStatus.innerHTML = "An error occurred when generating the summary. Please tagain";
         }
     }
 
@@ -52,7 +55,7 @@ export default function SummarySelection() {
                     return <option key = {idx} value = {file}>{file}</option>
                 })}
             </select>
-            <button type="button" id="summarizeFileButton" onClick = {() => console.log("summarize the file")}>Summarize This File</button>
+            <button type="button" id="summarizeFileButton" onClick = {(e) => summarize(e)}>Summarize This File</button>
         </form>
         <button className = "toHomePage" type = "button" onClick = {(e) => {
           e.preventDefault();

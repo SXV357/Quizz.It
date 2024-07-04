@@ -1,12 +1,14 @@
-# from collections import defaultdict
+from collections import defaultdict
 # import fitz
+from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
+import requests
 from ocr import *
 import os
-# from summary import create_summary # need to find a better model and fine-tune that
+from summary import create_summary # need to find a better model and fine-tune that
 from flask_cors import CORS
 import pypandoc # converting .docx to pdf
-from fpdf import FPDF
+# from fpdf import FPDF
 from email_validator import validate_email, EmailNotValidError
 import firebase_admin
 from firebase_admin import credentials, storage
@@ -14,14 +16,8 @@ from dotenv import load_dotenv
 import io
 from werkzeug.exceptions import RequestEntityTooLarge
 
-# potential logic for working with the pdf files stored in firebase storage
-    # obtain a download link to the pdf
-    # make a fetch request to it
-    # use pdf2image's convert_from_bytes function to get the images
-
 load_dotenv()
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-FILE_DIR = "../uploads"
 
 firebase_admin.initialize_app(
     credentials.Certificate({ \
@@ -42,12 +38,6 @@ app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024 # 100MB
 CORS(app)
 bucket = storage.bucket()
 
-# def extract_file_contents(file_name: str) -> Dict[str, str]:
-#     target_file = os.path.join(FILE_DIR, file_name)
-#     pdf_images = convert_to_image(target_file)
-#     text_contents = process_pdf_page(pdf_images) 
-#     return text_contents
-
 # Endpoint to check the existence of files for this given user in the database
 @app.route("/check_files", methods = ["GET"])
 def return_file_count():
@@ -55,7 +45,7 @@ def return_file_count():
     blobs = list(bucket.list_blobs(prefix=f"{username}/"))
     if len(blobs) > 0:
         return jsonify({"filesExist": True})
-    return jsonify({"filesExist": True})
+    return jsonify({"filesExist": False})
 
 # Endpoint for fetching all the files uploaded by the current user.
 @app.route("/fetch_files", methods = ["GET"])
@@ -99,17 +89,40 @@ def process_uploaded_file():
             
             # check if this file has a valid extension
             extension = name[name.rfind(".") + 1:]
-            if extension not in ["pdf", "docx", "txt"]:
-                return jsonify({"status": "Make sure you upload a PDF, TXT, or DOCX file only!"})
+            if extension != "pdf":
+                return jsonify({"status": "Make sure you upload a PDF file only!"})
+            
+            # if extension not in ["pdf", "docx", "txt"]:
+            #     return jsonify({"status": "Make sure you upload a PDF, TXT, or DOCX file only!"})
 
             # check whether file is not empty after determinining if its a valid document to ensure tesseract compatibility
             file.seek(0, os.SEEK_END)
             bytes = file.tell()
             if bytes == 0:
                 return jsonify({"status": "Please make sure you upload a non-empty document"})
-            file.seek(0, os.SEEK_SET)
+            file.seek(0)
+
+            return jsonify({"status": "PDF OK"})
             
-            contents = file.read()
+            # output_name = name if extension == 'pdf' else name[:name.rfind('.')] + '.pdf'
+            # print(f"Output name: {output_name}")
+            # blob = bucket.blob(f"{username}/{output_name}")
+
+            # if extension == "pdf":
+            #     return jsonify({"status": "PDF OK"})
+            #     # blob.upload_from_file(file, content_type='application/pdf')
+            # else:
+            #     contents = file.read()
+            #     output_file = io.BytesIO()
+            #     res = pypandoc.convert_text(contents, to = "pdf", format = "docx" if extension == "docx" else "markdown", outputfile=output_file)
+            #     output_file.seek(0)
+            #     assert res == ""
+            #     # print(f"contents: {output_file.read()}")
+            #     output_file.seek(0)
+            #     return send_file(output_file, mimetype="application/pdf")
+            #     # blob.upload_from_file(output_file, content_type='application/pdf')
+            
+            # return jsonify({"status": "File uploaded successfully"})
 
             # if not os.path.exists(FILE_DIR):
             #     os.makedirs(FILE_DIR)
@@ -137,24 +150,35 @@ def process_uploaded_file():
             #             pdf.output(os.path.join(FILE_DIR, name[:name.index(".")] + ".pdf")) 
 
             #         os.remove(os.path.join(FILE_DIR, name))
-            return jsonify({"status": "File uploaded successfully"}) 
-    except RequestEntityTooLarge:
+            # return jsonify({"status": "File uploaded successfully"}) 
+    except RequestEntityTooLarge as e:
+        print(e)
         return jsonify({"status": "File uploaded exceedss the maximum size of 100MB. Please select a different one and try again!"})
-    except Exception: 
+    except Exception as e: 
+        print(e)
         return jsonify({"status": "Error when uploading the file. Please try again!"})
 
-# Endpoint for generating summary of text and sending that back to the server along with the calculated text statistics
+def extract_file_contents(file_bytes: bytes) -> Dict[str, str]:
+    # target_file = os.path.join(FILE_DIR, file_name)
+    pdf_images = convert_to_image(file_bytes)
+    text_contents = process_pdf_page(pdf_images) 
+    return text_contents
 
-# @app.route("/generate_summary", methods = ["GET"])
-# def return_generated_text():
-#     text_contents = extract_file_contents(request.args.get("file"))
-#     text_statistics = calculate_text_statistics(text_contents)
-#     summarized_text = defaultdict(str)
-#     for page in text_contents:
-#         summarized_text[page] = create_summary(text_contents[page])
-#     print(summarized_text)
-#     # returning a dictionary that contains a page-by-page summary of the document
-#     return jsonify({"summarized_text": summarized_text, "statistics": text_statistics})
+# Endpoint for generating summary of text and sending that back to the server along with the calculated text statistics
+@app.route("/generate_summary", methods = ["GET"])
+def return_generated_text():
+    username, file = request.args.get("username"), request.args.get("file")
+    blob = bucket.blob(f"{username}/{file}")
+    doc_url = blob.generate_signed_url(expiration=datetime.now() + timedelta(hours=24))
+    req = requests.get(doc_url)
+    text_contents = extract_file_contents(req.content)
+    text_statistics = calculate_text_statistics(text_contents)
+
+    summarized_text = defaultdict(str)
+    for page in text_contents:
+        summarized_text[page] = create_summary(text_contents[page])
+    # returning a dictionary that contains a page-by-page summary of the document
+    return jsonify({"summarized_text": summarized_text, "statistics": text_statistics})
 
 # Endpoint to handle the task of answering questions about a specific document the user chooses
 

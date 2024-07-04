@@ -1,4 +1,4 @@
-from pdf2image import convert_from_path
+from pdf2image import convert_from_path, convert_from_bytes
 import numpy as np
 import cv2
 import pytesseract
@@ -9,9 +9,9 @@ from textblob import TextBlob
 from typing import Dict
 
 # converts all pages of PDF to PIL images and converts those images to numpy array for processing
-def convert_to_image(file_path: str):
+def convert_to_image(file_bytes: bytes):
     # find a general package to handle this for all the supported document types
-    page_images = convert_from_path(file_path) # array of PIL image objects
+    page_images = convert_from_bytes(file_bytes) # array of PIL image objects
     manipulated_images = [np.array(page) for page in page_images]
     return manipulated_images
 

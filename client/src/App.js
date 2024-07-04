@@ -26,8 +26,17 @@ export default function App() {
       .catch(err => console.log(err));
   }
 
+  async function uploadFileToStorage(fileName, uploadFile) {
+    const fileStorage = ref(storage, `${username}/${fileName}`)
+    await uploadBytes(fileStorage, uploadFile)
+      .then((snapshot) => {
+        console.log(snapshot);
+        setFileUploadStatus("File uploaded successfully");
+      })
+  }
+
   // will make a post request to the backend sendint the file and then retrieve a pdf version of the file to be uploaded to firebase storage
-  const uploadFile = (e) => {
+  const uploadFile = async (e) => {
     e.preventDefault();
     setSummaryFileStatus("");
     setGenerateQuestionFileStatus("");
@@ -35,23 +44,44 @@ export default function App() {
     let file_input = document.querySelector("#upload");
     let formData = new FormData();
     if (!(file_input.files[0] === undefined)) {
+      let file = file_input.files[0];
       // in case the file upload takes a long time
-      // const fileStorage = ref(storage, `${username}/${file_input.files[0].name}`)
-      //  uploadBytes(fileStorage, file_input.files[0])
-      //    .then((snapshot) => {
-      //      console.log(snapshot);
-      //      setFileUploadStatus("File uploaded successfully");
-      //    })
       setFileUploadStatus("Upload in progress...");
-      formData.append("upload", file_input.files[0]);
+      formData.append("upload", file);
       fetch(`http://127.0.0.1:5000/upload_file?username=${username}`, {
           method: "POST",
           body: formData
       })
-        .then((res) => res.json())
-        .then((data) => {
-          setFileUploadStatus(data.status);
+        .then(res => res.json())
+        .then(data => {
+          let status = data.status;
+          if (status === "PDF OK") {
+            uploadFileToStorage(file.name, file);
+          } else {
+            setFileUploadStatus(data.status);
+          }
         })
+      // let fileName = file_input.files[0].name;
+      // console.log(`Original file name: ${fileName}`)
+      // if (res.headers.get('content-type') === 'application/json') {
+      //   return res.json().then((data) => {
+      //     if (data.status === "PDF OK") {
+      //       console.log("Uploaded file is a PDF file and it passed all checks");
+      //       uploadFileToStorage(fileName, file_input.files[0]);
+      //     } else {
+      //       setFileUploadStatus(data.status);
+      //     }
+      //   }).catch((e) => console.log(`Error: ${e}`))
+      // } 
+      // else {
+      //   return res.blob().then((blob) => {
+      //     console.log(`blob: ${typeof blob}`)
+      //     console.log(blob)
+      //     // console.log(`received file from the backend: ${blob} `)
+      //     fileName = fileName.substring(0, fileName.lastIndexOf(".")) + ".pdf";
+      //     uploadFileToStorage(fileName, new File([blob], fileName, {type: 'application/pdf'}));
+      //   }).catch((e) => console.log(`Error: ${e}`))
+      // }
     } else {
       setFileUploadStatus("Make sure you have provided a file");
     }
