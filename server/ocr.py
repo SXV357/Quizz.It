@@ -44,6 +44,8 @@ def process_pdf_page(pages) -> Dict[str, list[str]]:
             # filters out all words which purely have only spaces or whitespaces, and ones that solely consist of numbers or special characters
             lines[j] = " ".join(list(filter(lambda word: bool(word.strip()) and not bool(pattern.match(word)), lines[j].split(" "))))
         text_contents[f"Page {i + 1}"] = "\n".join(lines)
+    
+    # print(f"text contents: {text_contents}")
 
     return text_contents
 
@@ -76,14 +78,16 @@ def determine_reading_level(score: float) -> str:
 def calculate_text_statistics(text_contents: Dict[str, str]) -> Dict[str, float]:
     # text_contents is a dictionary that maps page numbers to the text contained in them
     num_words, num_chars, num_sentences, num_syllables = 0, 0, 0, 0
-    pages = text_contents.keys()
+    pages = list(text_contents.keys())
+    # print(f"keys: {pages}")
     dic = pyphen.Pyphen(lang='en_US') # eventually move towards accepting documents containing different languages
     for page in pages:
         curr = TextBlob(text_contents[page])
         words, sentences = curr.words, curr.sentences
+        # print(f"Words: {words} Sentences: {sentences}")
         for word in words:
             num_chars += len(word) # number of characters in this page
-            num_syllables += len(dic.inserted(word).split('-')) # number of syllables in this page
+            num_syllables += len(dic.inserted(word).split('-')) # number of syllables in this given word
         num_words += len(words) # number of words on the given page
         num_sentences += len(sentences) # number of sentences in this page
 
@@ -92,4 +96,4 @@ def calculate_text_statistics(text_contents: Dict[str, str]) -> Dict[str, float]
     averageWordLength = (num_chars // num_words)
     flesch_score = round(206.835 - (1.015 * averageWordsPerSentence) - (84.6 * averageSyllablesPerWord), 2)
 
-    return {"Number of words": num_words, "Average word length": averageWordLength, "Number of characters": num_chars, "Number of sentences": num_sentences, "Number of syllables": num_syllables, "Legibility index": flesch_score, "Reading level": determine_reading_level(flesch_score)}    
+    return {"Number of words": num_words, "Average word length": averageWordLength, "Number of characters": num_chars, "Number of sentences": num_sentences, "Number of syllables": num_syllables, "Legibility index": flesch_score, "Reading level": determine_reading_level(flesch_score)}        

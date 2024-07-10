@@ -171,14 +171,17 @@ def return_generated_text():
     blob = bucket.blob(f"{username}/{file}")
     doc_url = blob.generate_signed_url(expiration=datetime.now() + timedelta(hours=24))
     req = requests.get(doc_url)
-    text_contents = extract_file_contents(req.content)
+    text_contents = extract_file_contents(req.content) # req.content represents the bytes of the file
     text_statistics = calculate_text_statistics(text_contents)
+
+    print(f"text contents: {text_contents}")
 
     summarized_text = defaultdict(str)
     for page in text_contents:
         summarized_text[page] = create_summary(text_contents[page])
+    # print(f"summarized text: {summarized_text}")
     # returning a dictionary that contains a page-by-page summary of the document
-    return jsonify({"summarized_text": summarized_text, "statistics": text_statistics})
+    return jsonify({"summarized_text": list(summarized_text.items()), "statistics": text_statistics, "username": username})
 
 # Endpoint to handle the task of answering questions about a specific document the user chooses
 
