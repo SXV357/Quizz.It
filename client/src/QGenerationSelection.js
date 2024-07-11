@@ -24,23 +24,28 @@ export default function QGenerationSelection() {
 
     const questionTypes = Array.from(questionType.options).filter(option => option.selected).map(option => option.value); // gets the whole array
     const selectedFile = Array.from(fileType.options).filter(option => option.selected).map(option => option.value)[0];
+
     if (questionTypes.length === 0) {
       pdfGenerationStatus.innerHTML = "You need to select atleast one question type!";
       return;
     }
+
     pdfGenerationStatus.innerHTML = "Please wait as the questions are being generated...";
-    fetch(`http://127.0.0.1:5000/generate_pdf?questionTypes=${questionTypes}&file=${selectedFile}`, {
+    fetch(`http://127.0.0.1:5000/generate_pdf?questionTypes=${questionTypes}&file=${selectedFile}&username=${username}`, {
       method: "GET"
     })
-      .then((res) => res.json())
-      .then((data) => {
-          pdfGenerationStatus.innerHTML = data.status;
+      .then((res) => res.blob())
+      .then((blob) => {
+        console.log(`blob received: ${blob}`)
+        console.log(URL.createObjectURL(blob));
+        // pdfGenerationStatus.innerHTML = data.status;
       })
-      .catch((err) => pdfGenerationStatus.innerHTML = "An error occurred when generating the PDF. Please try again");
+      .then((err) => console.log(err))
   }
 
   return (
-    <div id="container">
+    <>
+      <div id="container">
         <h2>Question Creator</h2>
         <form id="questionForm">
             <label htmlFor="questionType">Select Question Type:</label>
@@ -57,13 +62,17 @@ export default function QGenerationSelection() {
                 })}
             </select>
 
-            <button type="button" id="generateQuestionsButton" onClick = {() => console.log("generate questions")}>Generate Questions</button>
+            <button type="button" id="generateQuestionsButton" onClick = {(e) => generateQuestions(e)}>Generate Questions</button>
         </form>
         <button className = "toHomePage" type = "button" onClick = {(e) => {
           e.preventDefault();
           navigate("/app", {state: username});
         }}>Go To Home Page</button>
         <div className = "generatePDFStatus"></div>
-    </div>
+      </div>
+      <div className = "fileDownloadContainer">
+        <a href = "#">Click here to download the file containing the generated questions</a>
+      </div>
+    </>
   )
 }

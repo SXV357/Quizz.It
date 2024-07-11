@@ -8,12 +8,13 @@ import os
 from summary import create_summary # need to find a better model and fine-tune that
 from flask_cors import CORS
 import pypandoc # converting .docx to pdf
-# from fpdf import FPDF
+from fpdf import FPDF
 from email_validator import validate_email, EmailNotValidError
 import firebase_admin
 from firebase_admin import credentials, storage
 from dotenv import load_dotenv
 import io
+import codecs
 from werkzeug.exceptions import RequestEntityTooLarge
 
 load_dotenv()
@@ -159,8 +160,9 @@ def process_uploaded_file():
         return jsonify({"status": "Error when uploading the file. Please try again!"})
 
 def extract_file_contents(file_bytes: bytes) -> Dict[str, str]:
-    # target_file = os.path.join(FILE_DIR, file_name)
+    print(f"converting file to images...")
     pdf_images = convert_to_image(file_bytes)
+    print(f"images converted. now extracting text")
     text_contents = process_pdf_page(pdf_images) 
     return text_contents
 
@@ -171,6 +173,7 @@ def return_generated_text():
     blob = bucket.blob(f"{username}/{file}")
     doc_url = blob.generate_signed_url(expiration=datetime.now() + timedelta(hours=24))
     req = requests.get(doc_url)
+    assert req.status_code == 200
     text_contents = extract_file_contents(req.content) # req.content represents the bytes of the file
     text_statistics = calculate_text_statistics(text_contents)
 
@@ -179,11 +182,12 @@ def return_generated_text():
     summarized_text = defaultdict(str)
     for page in text_contents:
         summarized_text[page] = create_summary(text_contents[page])
-    # print(f"summarized text: {summarized_text}")
+
     # returning a dictionary that contains a page-by-page summary of the document
     return jsonify({"summarized_text": list(summarized_text.items()), "statistics": text_statistics, "username": username})
 
 # Endpoint to handle the task of answering questions about a specific document the user chooses
+    # convert this to a conversational RAG based chatbot
 
 # @app.route("/get_model_response", methods = ["GET"])
 # def fetch_response():
@@ -197,29 +201,55 @@ def return_generated_text():
 
 # Endpoint to handle the task of generating questions of specific types on a specific document the user chooses
 
-# @app.route("/generate_pdf", methods = ["GET"])
-# def generate_questions_pdf():
-#     question_types = request.args.get("questionTypes") # array of all the selected options
-#     # print(question_types)
-#     filename = request.args.get("file")
-#     text_contents = extract_file_contents(filename)
-#     extracted_text = ""
-#     for content in text_contents:
-#         extracted_text += " ".join(text_contents[content])
-#     # response = generate_questions(extracted_text, question_types)
+@app.route("/generate_pdf", methods = ["GET"])
+def generate_questions_pdf():
+    question_types = request.args.get("questionTypes") # array of all the selected options
+    file = request.args.get("file")
+    username = request.args.get("username")
 
-#     if not os.path.exists("../generatedQuestions"):
-#         os.makedirs("../generatedQuestions")
+    blob = bucket.blob(f"{username}/{file}")
+    download_url = blob.generate_signed_url(datetime.now() + timedelta(hours=24))
+    req = requests.get(download_url)
+    assert req.status_code == 200
+    text_contents = extract_file_contents(req.content)
+
+    pdf = FPDF()
+    text_data = ""
+    for page in text_contents:
+        text_data += text_contents[page]
+
+    pdf.add_page()
+    pdf.set_font("Arial", size=10)
+
+    # handle encoding of characters outside the default range(ignore instead of replacing them)
+    pdf.multi_cell(0, 5, codecs.encode(text_data, 'latin-1', 'ignore').decode('latin-1'))
+        
+    # if not os.path.exists("../uploads"):
+    #     os.makedirs("../uploads")
     
-#     # this logic of saving generated questions locally is fine but perhaps give the user flexibility to choose which directory on their local machine they want to save the pdf in + explore better options to write text to a pdf apart from the one below
+    # pdf.output(os.path.join("../uploads", file))
 
-#     doc = fitz.open()
-#     page = doc._newPage(width=600, height=845)
-#     where = fitz.Point(45, 100)
-#     # page.insert_text(where, response, fontsize=8)
-#     doc.save(f"../generatedQuestions/{filename[:len(filename) - 4]}-generatedQuestions.pdf")
+    result_file = io.BytesIO()
+    print(f"outputting pdf to the result file")
+    # cannot do pdf.output(result_file) because it thinks result_file is the name of a file which is not true
+    # to write to the binary file, pdf contents need to be converted to bytes
+    #  encoding needed to convert string into bytes that is compatible with the write function
+    result_file.write(pdf.output(dest="S").encode("latin-1"))
+    print("seeking to the start")
+    result_file.seek(0)
+    # print(result_file.read())
 
-#     return jsonify({"status": "PDF Generated Successfully"})
+    print(f"sending file back to client")
+    return send_file(result_file, mimetype="application/pdf", download_name=f"{file[:file.rfind('.')]}-generatedQuestions.pdf", as_attachment=True)
+    
+    # return send_file(output, mimetype = "application/pdf", download_name= f"{file[:file.rfind('.')]}-generatedQuestions.pdf", as_attachment=True)
+
+    # algorithm:
+        # fetch the file corresponding to this user(download url)
+        # extract its contents using the pre-defined method above
+        # fine tune a model for text generation(need to find a way to handle passing text from large documents without running into issues)
+        # write the questions generated to a pdf
+        # send the pdf back to the frontend to be downloaded by the user
 
 if __name__ == "__main__":
     app.run(debug = True)
