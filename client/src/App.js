@@ -26,14 +26,14 @@ export default function App() {
       .catch(err => console.log(err));
   }
 
-  async function uploadFileToStorage(fileName, uploadFile) {
-    const fileStorage = ref(storage, `${username}/${fileName}`)
-    await uploadBytes(fileStorage, uploadFile)
-      .then((snapshot) => {
-        console.log(snapshot);
-        setFileUploadStatus("File uploaded successfully");
-      })
-  }
+  // async function uploadFileToStorage(fileName, uploadFile) {
+  //   const fileStorage = ref(storage, `${username}/${fileName}`)
+  //   await uploadBytes(fileStorage, uploadFile)
+  //     .then((snapshot) => {
+  //       console.log(snapshot);
+  //       setFileUploadStatus("File uploaded successfully");
+  //     })
+  // }
 
   // will make a post request to the backend sendint the file and then retrieve a pdf version of the file to be uploaded to firebase storage
   const uploadFile = async (e) => {
@@ -54,12 +54,7 @@ export default function App() {
       })
         .then(res => res.json())
         .then(data => {
-          let status = data.status;
-          if (status === "PDF OK") {
-            uploadFileToStorage(file.name, file);
-          } else {
-            setFileUploadStatus(data.status);
-          }
+          setFileUploadStatus(data.status);
         })
       // let fileName = file_input.files[0].name;
       // console.log(`Original file name: ${fileName}`)
@@ -79,7 +74,7 @@ export default function App() {
       //     console.log(blob)
       //     // console.log(`received file from the backend: ${blob} `)
       //     fileName = fileName.substring(0, fileName.lastIndexOf(".")) + ".pdf";
-      //     uploadFileToStorage(fileName, new File([blob], fileName, {type: 'application/pdf'}));
+      //     uploadFileToStorage(fileName, blob);
       //   }).catch((e) => console.log(`Error: ${e}`))
       // }
     } else {

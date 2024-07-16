@@ -1,5 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFilePdf } from '@fortawesome/free-solid-svg-icons'
 
 export default function QGenerationSelection() {
 
@@ -21,6 +23,7 @@ export default function QGenerationSelection() {
     let questionType = document.getElementById("questionType");
     let fileType = document.getElementById("questionFileSelect");
     let pdfGenerationStatus = document.querySelector(".generatePDFStatus");
+    let fileDownload = document.getElementById("questionsDownload")
 
     const questionTypes = Array.from(questionType.options).filter(option => option.selected).map(option => option.value); // gets the whole array
     const selectedFile = Array.from(fileType.options).filter(option => option.selected).map(option => option.value)[0];
@@ -36,9 +39,10 @@ export default function QGenerationSelection() {
     })
       .then((res) => res.blob())
       .then((blob) => {
-        console.log(`blob received: ${blob}`)
-        console.log(URL.createObjectURL(blob));
-        // pdfGenerationStatus.innerHTML = data.status;
+        fileDownload.style.display = "block";
+        fileDownload.href = URL.createObjectURL(blob);
+        fileDownload.download = selectedFile.substring(0, selectedFile.lastIndexOf(".")) + "-generatedQuestions.pdf";
+        pdfGenerationStatus.innerHTML = "Questions generated successfully!"
       })
       .then((err) => console.log(err))
   }
@@ -70,9 +74,9 @@ export default function QGenerationSelection() {
         }}>Go To Home Page</button>
         <div className = "generatePDFStatus"></div>
       </div>
-      <div className = "fileDownloadContainer">
-        <a href = "#">Click here to download the file containing the generated questions</a>
-      </div>
+      <a href = "#" id = "questionsDownload" style = {{display: "none", margin: "0 auto", textAlign: "center"}} download>
+        <FontAwesomeIcon icon={faFilePdf} size = {"4x"}/>
+      </a>
     </>
   )
 }

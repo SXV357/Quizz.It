@@ -90,11 +90,11 @@ def process_uploaded_file():
             
             # check if this file has a valid extension
             extension = name[name.rfind(".") + 1:]
-            if extension != "pdf":
-                return jsonify({"status": "Make sure you upload a PDF file only!"})
+            # if extension != "pdf":
+            #     return jsonify({"status": "Make sure you upload a PDF file only!"})
             
-            # if extension not in ["pdf", "docx", "txt"]:
-            #     return jsonify({"status": "Make sure you upload a PDF, TXT, or DOCX file only!"})
+            if extension not in ["pdf", "docx", "txt"]:
+                return jsonify({"status": "Make sure you upload a PDF, TXT, or DOCX file only!"})
 
             # check whether file is not empty after determinining if its a valid document to ensure tesseract compatibility
             file.seek(0, os.SEEK_END)
@@ -103,27 +103,26 @@ def process_uploaded_file():
                 return jsonify({"status": "Please make sure you upload a non-empty document"})
             file.seek(0)
 
-            return jsonify({"status": "PDF OK"})
+            # return jsonify({"status": "PDF OK"})
             
-            # output_name = name if extension == 'pdf' else name[:name.rfind('.')] + '.pdf'
-            # print(f"Output name: {output_name}")
-            # blob = bucket.blob(f"{username}/{output_name}")
+            output_name = name if extension == 'pdf' else name[:name.rfind('.')] + '.pdf'
+            print(f"Output name: {output_name}")
+            blob = bucket.blob(f"{username}/{output_name}")
 
-            # if extension == "pdf":
-            #     return jsonify({"status": "PDF OK"})
-            #     # blob.upload_from_file(file, content_type='application/pdf')
-            # else:
-            #     contents = file.read()
-            #     output_file = io.BytesIO()
-            #     res = pypandoc.convert_text(contents, to = "pdf", format = "docx" if extension == "docx" else "markdown", outputfile=output_file)
-            #     output_file.seek(0)
-            #     assert res == ""
-            #     # print(f"contents: {output_file.read()}")
-            #     output_file.seek(0)
-            #     return send_file(output_file, mimetype="application/pdf")
-            #     # blob.upload_from_file(output_file, content_type='application/pdf')
+            if extension == "pdf":
+                # return jsonify({"status": "PDF OK"})
+                blob.upload_from_file(file, content_type='application/pdf')
+            else:
+                contents = file.read()
+                output_file = io.BytesIO()
+                res = pypandoc.convert_text(contents, to = "pdf", format = "docx" if extension == "docx" else "markdown", outputfile=output_file)
+                output_file.seek(0)
+                assert res == ""
+                # print(f"contents: {output_file.read()}")
+                # return send_file(output_file, mimetype="application/pdf")
+                blob.upload_from_file(output_file, content_type='application/pdf')
             
-            # return jsonify({"status": "File uploaded successfully"})
+            return jsonify({"status": "File uploaded successfully"})
 
             # if not os.path.exists(FILE_DIR):
             #     os.makedirs(FILE_DIR)
@@ -207,8 +206,8 @@ def generate_questions_pdf():
     file = request.args.get("file")
     username = request.args.get("username")
 
-    blob = bucket.blob(f"{username}/{file}")
-    download_url = blob.generate_signed_url(datetime.now() + timedelta(hours=24))
+    main_blob = bucket.blob(f"{username}/{file}")
+    download_url = main_blob.generate_signed_url(datetime.now() + timedelta(hours=24))
     req = requests.get(download_url)
     assert req.status_code == 200
     text_contents = extract_file_contents(req.content)
@@ -223,26 +222,15 @@ def generate_questions_pdf():
 
     # handle encoding of characters outside the default range(ignore instead of replacing them)
     pdf.multi_cell(0, 5, codecs.encode(text_data, 'latin-1', 'ignore').decode('latin-1'))
-        
-    # if not os.path.exists("../uploads"):
-    #     os.makedirs("../uploads")
-    
-    # pdf.output(os.path.join("../uploads", file))
 
-    result_file = io.BytesIO()
-    print(f"outputting pdf to the result file")
     # cannot do pdf.output(result_file) because it thinks result_file is the name of a file which is not true
     # to write to the binary file, pdf contents need to be converted to bytes
     #  encoding needed to convert string into bytes that is compatible with the write function
+    result_file = io.BytesIO()
     result_file.write(pdf.output(dest="S").encode("latin-1"))
-    print("seeking to the start")
     result_file.seek(0)
-    # print(result_file.read())
 
-    print(f"sending file back to client")
-    return send_file(result_file, mimetype="application/pdf", download_name=f"{file[:file.rfind('.')]}-generatedQuestions.pdf", as_attachment=True)
-    
-    # return send_file(output, mimetype = "application/pdf", download_name= f"{file[:file.rfind('.')]}-generatedQuestions.pdf", as_attachment=True)
+    return send_file(result_file, mimetype="application/pdf", as_attachment=True, download_name=f"{file[:file.rfind('.')]}-generatedQuestions.pdf")
 
     # algorithm:
         # fetch the file corresponding to this user(download url)
