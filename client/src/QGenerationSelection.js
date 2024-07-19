@@ -37,12 +37,15 @@ export default function QGenerationSelection() {
     fetch(`http://127.0.0.1:5000/generate_pdf?questionTypes=${questionTypes}&file=${selectedFile}&username=${username}`, {
       method: "GET"
     })
-      .then((res) => res.blob())
-      .then((blob) => {
-        fileDownload.style.display = "block";
-        fileDownload.href = URL.createObjectURL(blob);
-        fileDownload.download = selectedFile.substring(0, selectedFile.lastIndexOf(".")) + "-generatedQuestions.pdf";
-        pdfGenerationStatus.innerHTML = "Questions generated successfully!"
+      .then((res) => res.json())
+      .then(data => {
+        const {url, name} = data;
+        fetch(url).then(response => response.blob()).then(blob => {
+          fileDownload.style.display = "block";
+          fileDownload.href = URL.createObjectURL(blob);
+          fileDownload.download = name;
+          pdfGenerationStatus.innerHTML = "Questions generated successfully!"
+        })
       })
       .then((err) => console.log(err))
   }

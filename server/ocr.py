@@ -15,7 +15,7 @@ def convert_to_image(file_bytes: bytes):
     manipulated_images = [np.array(page) for page in page_images]
     return manipulated_images
 
-def process_pdf_page(pages) -> Dict[str, list[str]]:
+def process_pdf_page(pages) -> Dict[str, str]:
     text_contents = {}
     pattern = re.compile(r'^[!@#$%^&*(),.?":{}|<>]+$|^\d+')
     for i in range(len(pages)):
