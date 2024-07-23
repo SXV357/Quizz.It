@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request, send_file
 import requests
 from ocr import *
 import os
-from summary import create_summary # need to find a better model and fine-tune that
+# from summary import create_summary # need to find a better model and fine-tune that
 from flask_cors import CORS
 # import pypandoc # converting .docx to pdf
 from fpdf import FPDF
@@ -13,16 +13,17 @@ from email_validator import validate_email, EmailNotValidError
 import firebase_admin
 from firebase_admin import credentials, storage
 from dotenv import load_dotenv
-# import io
-# import codecs
+import io
+import codecs
 from werkzeug.exceptions import RequestEntityTooLarge
 from langchain_chroma import Chroma
-# from langchain_community.document_loaders import WebBaseLoader
 from langchain.docstore.document import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+import google.generativeai as genai
 
 load_dotenv()
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
 
 firebase_admin.initialize_app(
     credentials.Certificate({ \
@@ -184,7 +185,8 @@ def return_generated_text():
 
     summarized_text = defaultdict(str)
     for page in text_contents:
-        summarized_text[page] = create_summary(text_contents[page])
+        summarized_text[page] = ""
+        # summarized_text[page] = create_summary(text_contents[page])
 
     # returning a dictionary that contains a page-by-page summary of the document
     return jsonify({"summarized_text": list(summarized_text.items()), "statistics": text_statistics, "username": username})
@@ -203,8 +205,6 @@ def fetch_response():
     req = requests.get(url)
     assert req.status_code == 200
     text_contents = extract_file_contents(req.content)
-
-    # can webbaseloader parse a firebase download url
 
     docs = []
     for page in text_contents:
@@ -238,36 +238,56 @@ def generate_questions_pdf():
     docs = []
     for page in text_contents:
         docs.append(Document(page_content=text_contents[page], metadata={"source": file}))
-    
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        
+    splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=400)
     split_docs = splitter.split_documents(docs)
-    # when generating questions refer to split documents to ensure token limit is under control
 
-    return jsonify({"url": download_url, "name": f"{file[:file.rfind('.')]}-generatedQuestions.pdf"})
+    # creating chunks of size 5 further from the split_documents
+    doc_groups = []
+    if len(split_docs) >= 15:
+        for i in range(0, len(split_docs), 5):
+            doc_groups.append(split_docs[i:i+5])
 
-    # pdf = FPDF()
+    system_prompt = f"You are a highly knowledgeable assistant tasked with generating insightful and useful questions based on the provided document text. Your goal is to help a user deepen their understanding of the document's content, whether they are studying for a test, preparing for a discussion, or seeking a more comprehensive grasp of the material. Depending on the text and its content, generate either one question or multiple questions that are clear, thought-provoking, and cover key concepts and details presented in the text. Ensure that the questions span the following types, if appropriate: {question_types.split(',')}. Include answer choices for multiple-choice questions and ensure all questions are in the same format without any headers. If the text block does not contain enough information to generate meaningful questions, simply respond with 'N/A'. Only provide the question(s) and not the answer(s)."
 
-    # pdf.add_page()
-    # pdf.set_font("Arial", size=10)
+    def inject_prompt(text: str) -> str:
+        return f"Generate a question or several questions based on the following text block.\n Text block: {text}"
+    
+    questions = []
+    model = genai.GenerativeModel("gemini-1.5-flash", system_instruction=system_prompt)
+    # number of split documents is < 10
+    if not doc_groups:
+        for doc in split_docs:
+            content = doc.page_content
+            response = model.generate_content(inject_prompt(content))
+            questions.append(response.text)
+    # number of split documents >= 10
+    else:
+        for group in doc_groups:
+            text = "\n\n".join(doc.page_content for doc in group)
+            response = model.generate_content(inject_prompt(text))
+            questions.append(response.text)
+    
+    pdf = FPDF()
 
-    # handle encoding of characters outside the default range(ignore instead of replacing them)
-    # pdf.multi_cell(0, 5, codecs.encode(text_data, 'latin-1', 'ignore').decode('latin-1'))
-
+    pdf.add_page()
+    pdf.set_font("Arial", size=10)
+    
+    start = 1
+    for question in questions:
+        if question != "N/A":
+            # handle encoding of characters outside the default range(ignore instead of replacing them)
+            pdf.multi_cell(0, 5, f"{start}. {question}\n")
+            start += 1
+    
     # cannot do pdf.output(result_file) because it thinks result_file is the name of a file which is not true
     # to write to the binary file, pdf contents need to be converted to bytes
-    #  encoding needed to convert string into bytes that is compatible with the write function
-    # result_file = io.BytesIO()
-    # result_file.write(pdf.output(dest="S").encode("latin-1"))
-    # result_file.seek(0)
+    # encoding needed to convert string into bytes that is compatible with the write function
+    result_file = io.BytesIO()
+    result_file.write(pdf.output(dest="S").encode("latin-1"))
+    result_file.seek(0)
 
-    # return send_file(result_file, mimetype="application/pdf", as_attachment=True, download_name=f"{file[:file.rfind('.')]}-generatedQuestions.pdf")
-
-    # algorithm:
-        # fetch the file corresponding to this user(download url)
-        # extract its contents using the pre-defined method above
-        # fine tune a model for text generation(need to find a way to handle passing text from large documents without running into issues)
-        # write the questions generated to a pdf
-        # send the pdf back to the frontend to be downloaded by the user
+    return send_file(result_file, mimetype="application/pdf", as_attachment=True, download_name=f"{file[:file.rfind('.')]}-generatedQuestions.pdf")
 
 if __name__ == "__main__":
     app.run(debug = True)
