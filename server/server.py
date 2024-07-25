@@ -1,29 +1,36 @@
 from collections import defaultdict
-# import fitz
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
 import requests
 from ocr import *
 import os
-# from summary import create_summary # need to find a better model and fine-tune that
 from flask_cors import CORS
-# import pypandoc # converting .docx to pdf
 from fpdf import FPDF
 from email_validator import validate_email, EmailNotValidError
 import firebase_admin
 from firebase_admin import credentials, storage
 from dotenv import load_dotenv
 import io
-import codecs
 from werkzeug.exceptions import RequestEntityTooLarge
 from langchain_chroma import Chroma
 from langchain.docstore.document import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import google.generativeai as genai
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+from langchain_core.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
+from langchain.chains.combine_documents.stuff import create_stuff_documents_chain
+from langchain.chains.retrieval import create_retrieval_chain
+from langchain_core.messages.human import HumanMessage
+from langchain_core.messages.ai import AIMessage
+from vertexai.preview import tokenization
 
 load_dotenv()
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
+
+GOOGLE_API_KEY=os.environ.get("GOOGLE_API_KEY")
+genai.configure(api_key=GOOGLE_API_KEY)
+GEMINI_MAX_TOKENS=1_000_000
+tokenizer = tokenization.get_tokenizer_for_model("gemini-1.5-flash")
 
 firebase_admin.initialize_app(
     credentials.Certificate({ \
@@ -128,34 +135,7 @@ def process_uploaded_file():
             #     blob.upload_from_string(output_file.read(), content_type="application/pdf")
             
             # return jsonify({"status": "File uploaded successfully"})
-
-            # if not os.path.exists(FILE_DIR):
-            #     os.makedirs(FILE_DIR)
-            # file.save(os.path.join(FILE_DIR, name))
-            
-            # match extension:
-            #     case "docx":
-            #         output = pypandoc.convert_file(os.path.join(FILE_DIR, name), "pdf", outputfile=os.path.join(FILE_DIR, name[:name.index(".")] + ".pdf"), extra_args=['--pdf-engine=pdflatex'])
-            #         assert output == ""
-            #         os.remove(os.path.join(FILE_DIR, name))
-            #     case "txt":
-            #         pdf = FPDF()
-
-            #         with open(os.path.join(FILE_DIR, name), "r") as new_file:
-            #             lines = new_file.readlines()
-            #             lines = list(map(lambda t: t.strip(), lines))
-
-            #             pdf.set_auto_page_break(auto=True, margin=15)
-            #             pdf.add_page()
-            #             pdf.set_font("Arial", size=10)
-
-            #             for line in lines:
-            #                 pdf.multi_cell(0, 5, line)
-                    
-            #             pdf.output(os.path.join(FILE_DIR, name[:name.index(".")] + ".pdf")) 
-
-            #         os.remove(os.path.join(FILE_DIR, name))
-            # return jsonify({"status": "File uploaded successfully"}) 
+             
     except RequestEntityTooLarge as e:
         print(e)
         return jsonify({"status": "File uploaded exceedss the maximum size of 100MB. Please select a different one and try again!"})
@@ -199,6 +179,7 @@ def fetch_response():
     data = request.json
     query, file = data.get("query"), data.get("file")
     username, history = data.get("username"), data.get("history")
+    used_tokens = data.get("usedTokens")
 
     blob = bucket.blob(f"{username}/{file}")
     url = blob.generate_signed_url(datetime.now() + timedelta(hours=24))
@@ -210,16 +191,40 @@ def fetch_response():
     for page in text_contents:
         docs.append(Document(page_content=text_contents[page], metadata={"source": file}))
     
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=400)
     split_docs = splitter.split_documents(docs)
-    # db = Chroma.from_documents()
+    db = Chroma.from_documents(split_docs, GoogleGenerativeAIEmbeddings(
+        google_api_key=GOOGLE_API_KEY,
+        model="models/embedding-001"
+    ))
+    retriever = db.as_retriever(search_kwargs={"k": 3})
 
-    # text_contents = extract_file_contents(request.args.get("file"))
-    # extracted_text = ""
-    # for content in text_contents:
-    #     extracted_text += " ".join(text_contents[content])
-    # response = answer_questions(extracted_text, query)
-    return jsonify({"response": ""})
+    system_prompt = (
+        "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise."
+        "\n\n"
+        "{context}"
+    )
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        MessagesPlaceholder("chat_history"),
+        ("human", "{input}")
+    ])
+
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
+    doc_chain = create_stuff_documents_chain(llm, prompt)
+    retrieval_chain = create_retrieval_chain(retriever, doc_chain)
+
+    modified_history = []
+    if history:
+        contents = list(zip(history["user"], history["bot"]))
+        for user, bot in contents:
+            modified_history.append(HumanMessage(user))
+            modified_history.append(AIMessage(bot))
+    
+    response = retrieval_chain.invoke({"input": query, "chat_history": modified_history})
+
+    return jsonify({"response": response["answer"]})
 
 # Endpoint to handle the task of generating questions of specific types on a specific document the user chooses
 

@@ -31,6 +31,9 @@ export default function QAnsweringSelection() {
     let botResponses = sessionHistory !== null ? JSON.parse(sessionHistory)["bot"] : [];
     let localHistory = {user: userMessages, bot: botResponses};
 
+    const usedTokens = sessionStorage.getItem("usedTokens");
+    let localUsedTokens = usedTokens !== null ? JSON.parse(usedTokens) : 0;
+
     const selectedFile = Array.from(fileType.options).filter(option => option.selected).map(option => option.value)[0];
     if (selectedFile === undefined) {
       setQuestionAnswerStatus("You need to select a file!");
@@ -54,7 +57,8 @@ export default function QAnsweringSelection() {
           query: query,
           file: selectedFile,
           username: username,
-          history: localHistory
+          history: localHistory,
+          usedTokens: localUsedTokens
         })
     })
       .then((res) => res.json())
