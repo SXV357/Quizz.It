@@ -64,15 +64,21 @@ export default function QAnsweringSelection() {
       .then((res) => res.json())
       .then((data) => {
         const response = data["response"]
-
+        const usedTokens = data["usedTokens"]
+        
+        // appending bot message to conversation container
         let botElem = document.createElement("div")
         botElem.className = "botResponse"
         botElem.innerHTML = `Bot: ${response}`
         conversation.appendChild(botElem);
-
+        
+        // updating conversation history with latest interaction
         localHistory["user"].push(query);
         localHistory["bot"].push(response);
         sessionStorage.setItem("history", JSON.stringify(localHistory))
+        
+        // updating number of used tokens in session storage
+        sessionStorage.setItem("usedTokens", usedTokens)
 
         setQuery("");
         setQuestionAnswerStatus("");

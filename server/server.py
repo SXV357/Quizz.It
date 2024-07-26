@@ -25,11 +25,11 @@ from langchain_core.messages.ai import AIMessage
 from vertexai.preview import tokenization
 
 load_dotenv()
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
+# os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 GOOGLE_API_KEY=os.environ.get("GOOGLE_API_KEY")
 genai.configure(api_key=GOOGLE_API_KEY)
-GEMINI_MAX_TOKENS=1_000_000
+GEMINI_MAX_TOKENS = 1_048_576
 tokenizer = tokenization.get_tokenizer_for_model("gemini-1.5-flash")
 
 firebase_admin.initialize_app(
@@ -144,29 +144,50 @@ def process_uploaded_file():
         return jsonify({"status": "Error when uploading the file. Please try again!"})
 
 def extract_file_contents(file_bytes: bytes) -> Dict[str, str]:
-    print(f"converting file to images...")
     pdf_images = convert_to_image(file_bytes)
-    print(f"images converted. now extracting text")
     text_contents = process_pdf_page(pdf_images) 
     return text_contents
 
 # Endpoint for generating summary of text and sending that back to the server along with the calculated text statistics
 @app.route("/generate_summary", methods = ["GET"])
-def return_generated_text():
+def summarize_text():
     username, file = request.args.get("username"), request.args.get("file")
+
     blob = bucket.blob(f"{username}/{file}")
     doc_url = blob.generate_signed_url(expiration=datetime.now() + timedelta(hours=24))
     req = requests.get(doc_url)
     assert req.status_code == 200
+
     text_contents = extract_file_contents(req.content) # req.content represents the bytes of the file
     text_statistics = calculate_text_statistics(text_contents)
 
-    print(f"text contents: {text_contents}")
+    system_prompt = "As a professional summarizer, create a concise and comprehensive summary of the provided text, be it an article, post, conversation, or passage, while adhering to these guidelines:\n1. Craft a summary that is detailed, thorough, in-depth, and complex, while maintaining clarity and conciseness.\n2. Incorporate main ideas and essential information, eliminating extraneous language and focusing on critical aspects.\n3. Rely strictly on the provided text, without including external information.\n4. Format the summary in paragraph form for easy understanding."
 
+    llm = genai.GenerativeModel("gemini-1.5-flash", system_instruction=system_prompt)
+
+    page_groups = []
+    # if there are 15+ pages
+    if len(text_contents) >= 15:
+        page_text = list(text_contents.values())
+        # each subarray in the array will contain text from 5 pages
+        for i in range(0, len(page_text), 5):
+            page_groups.append(page_text[i:i+5])
+    
     summarized_text = defaultdict(str)
-    for page in text_contents:
-        summarized_text[page] = ""
-        # summarized_text[page] = create_summary(text_contents[page])
+    
+    if page_groups:
+        start, end = 1, 5
+        for i in range(len(page_groups)):
+            curr_len = len(page_groups[i])
+            if i > 0:
+                if curr_len == 5:
+                    start, end = start + 5, end + 5
+                else:
+                    start, end = start + 5, end + curr_len
+            summarized_text[f"Pages {start}-{end}"] = llm.generate_content("\n\n".join(page_groups[i])).text
+    else:
+        for page in text_contents:
+            summarized_text[page] = llm.generate_content(text_contents[page]).text
 
     # returning a dictionary that contains a page-by-page summary of the document
     return jsonify({"summarized_text": list(summarized_text.items()), "statistics": text_statistics, "username": username})
@@ -215,16 +236,32 @@ def fetch_response():
     doc_chain = create_stuff_documents_chain(llm, prompt)
     retrieval_chain = create_retrieval_chain(retriever, doc_chain)
 
-    modified_history = []
-    if history:
-        contents = list(zip(history["user"], history["bot"]))
-        for user, bot in contents:
-            modified_history.append(HumanMessage(user))
-            modified_history.append(AIMessage(bot))
-    
-    response = retrieval_chain.invoke({"input": query, "chat_history": modified_history})
+    query_tokens = tokenizer.count_tokens(query).total_tokens
+    if query_tokens + used_tokens >= GEMINI_MAX_TOKENS:
+        current = query_tokens + used_tokens
+        while current >= GEMINI_MAX_TOKENS:
+            pass
 
-    return jsonify({"response": response["answer"]})
+    # modified_history = []
+    # if history:
+    #     contents = list(zip(history["user"], history["bot"]))
+    #     for user, bot in contents:
+    #         modified_history.append(HumanMessage(user))
+    #         modified_history.append(AIMessage(bot))
+        
+    #     # updating tokens for history passed in
+    #     for el in contents:
+    #         used_tokens += tokenizer.count_tokens(el.content).total_tokens
+    
+    # including tokens used for query
+    # used_tokens += tokenizer.count_tokens(query).total_tokens
+    
+    # response = retrieval_chain.invoke({"input": query, "chat_history": modified_history})["answer"]
+
+    # including tokens used for response
+    # used_tokens += tokenizer.count_tokens(response).total_tokens
+
+    return jsonify({"response": "", "usedTokens": used_tokens})
 
 # Endpoint to handle the task of generating questions of specific types on a specific document the user chooses
 

@@ -45,7 +45,6 @@ def process_pdf_page(pages) -> Dict[str, str]:
             lines[j] = " ".join(list(filter(lambda word: bool(word.strip()) and not bool(pattern.match(word)), lines[j].split(" "))))
         text_contents[f"Page {i + 1}"] = "\n".join(lines)
     
-    # print(f"text contents: {text_contents}")
 
     return text_contents
 
@@ -71,23 +70,19 @@ def determine_reading_level(score: float) -> str:
     
     return level
 
-# edge cases:
-    # 1. user uploads a valid but empty document - DONE
-    # 2. user uploads a document without an extension - DONE
-
 def calculate_text_statistics(text_contents: Dict[str, str]) -> Dict[str, float]:
     # text_contents is a dictionary that maps page numbers to the text contained in them
     num_words, num_chars, num_sentences, num_syllables = 0, 0, 0, 0
     pages = list(text_contents.keys())
-    # print(f"keys: {pages}")
     dic = pyphen.Pyphen(lang='en_US') # eventually move towards accepting documents containing different languages
+
     for page in pages:
         curr = TextBlob(text_contents[page])
         words, sentences = curr.words, curr.sentences
-        # print(f"Words: {words} Sentences: {sentences}")
         for word in words:
             num_chars += len(word) # number of characters in this page
             num_syllables += len(dic.inserted(word).split('-')) # number of syllables in this given word
+            
         num_words += len(words) # number of words on the given page
         num_sentences += len(sentences) # number of sentences in this page
 

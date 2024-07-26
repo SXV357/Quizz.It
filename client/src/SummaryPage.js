@@ -16,7 +16,6 @@ export default function SummaryPage() {
                 <div>
                     <div className = "summary_text">
                         {summarized_text.map((pair, idx) => {
-                            console.log(pair);
                             return (
                                 <section key = {idx}>
                                     <p>Summary for {pair[0]}</p><br />
