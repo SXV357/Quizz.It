@@ -24,13 +24,18 @@ from langchain_core.messages.human import HumanMessage
 from langchain_core.messages.ai import AIMessage
 from vertexai.preview import tokenization
 
+# to-dos
+    # implement history truncation logic on backend and integrate with frontend
+    # implement logic to process pdfs under a certain page limit as they shouldn't be allowed to upload books or whatnot
+
 load_dotenv()
-# os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 GOOGLE_API_KEY=os.environ.get("GOOGLE_API_KEY")
 genai.configure(api_key=GOOGLE_API_KEY)
 GEMINI_MAX_TOKENS = 1_048_576
 tokenizer = tokenization.get_tokenizer_for_model("gemini-1.5-flash")
+
+answer_retriever = None
 
 firebase_admin.initialize_app(
     credentials.Certificate({ \
@@ -195,12 +200,23 @@ def summarize_text():
 # Endpoint to handle the task of answering questions about a specific document the user chooses
     # convert this to a conversational RAG based chatbot
 
-@app.route("/get_model_response", methods = ["POST"])
-def fetch_response():
-    data = request.json
-    query, file = data.get("query"), data.get("file")
-    username, history = data.get("username"), data.get("history")
-    used_tokens = data.get("usedTokens")
+@app.route("/signal_doc_qa_selection", methods = ["POST"])
+def invoke_doc_processal():
+    # reset it to NULL each time before a new chain is created for the current document
+    global answer_retriever
+    answer_retriever = None
+
+    print(f"answer retriever before selecting a new file: {answer_retriever}")
+
+    file = request.args.get("file")
+    username = request.args.get("username")
+    initialize_qa_chain(file, username)
+    return jsonify({"status": "OK"})
+
+def initialize_qa_chain(file: str, username: str) -> None:
+    global answer_retriever
+    file = request.args.get("file")
+    username = request.args.get("username")
 
     blob = bucket.blob(f"{username}/{file}")
     url = blob.generate_signed_url(datetime.now() + timedelta(hours=24))
@@ -236,32 +252,46 @@ def fetch_response():
     doc_chain = create_stuff_documents_chain(llm, prompt)
     retrieval_chain = create_retrieval_chain(retriever, doc_chain)
 
-    query_tokens = tokenizer.count_tokens(query).total_tokens
-    if query_tokens + used_tokens >= GEMINI_MAX_TOKENS:
-        current = query_tokens + used_tokens
-        while current >= GEMINI_MAX_TOKENS:
-            pass
+    answer_retriever = retrieval_chain
+    print(f"answer retriever after creating a new chain: {answer_retriever}")
 
-    # modified_history = []
-    # if history:
-    #     contents = list(zip(history["user"], history["bot"]))
-    #     for user, bot in contents:
-    #         modified_history.append(HumanMessage(user))
-    #         modified_history.append(AIMessage(bot))
+@app.route("/get_model_response", methods = ["POST"])
+def fetch_response():
+    data = request.json
+    query, history, used_tokens = data.get("query"), data.get("history"), data.get("usedTokens")
+
+    print(f"query: {query}")
+    print(f"history: {history}")
+
+    query_tokens = tokenizer.count_tokens(query).total_tokens
+    used_tokens += query_tokens
+
+    # handle chat history truncation here
+    # if query_tokens + used_tokens >= GEMINI_MAX_TOKENS:
+    #     current = query_tokens + used_tokens
+    #     while current >= GEMINI_MAX_TOKENS:
+    #         pass
+
+    modified_history = []
+    if history["user"] and history["bot"]:
+        contents = list(zip(history["user"], history["bot"]))
+        for user, bot in contents:
+            modified_history.append(HumanMessage(user))
+            modified_history.append(AIMessage(bot))
         
     #     # updating tokens for history passed in
     #     for el in contents:
     #         used_tokens += tokenizer.count_tokens(el.content).total_tokens
     
     # including tokens used for query
-    # used_tokens += tokenizer.count_tokens(query).total_tokens
+    used_tokens += tokenizer.count_tokens(query).total_tokens
     
-    # response = retrieval_chain.invoke({"input": query, "chat_history": modified_history})["answer"]
+    response = answer_retriever.invoke({"input": query, "chat_history": modified_history})["answer"]
 
     # including tokens used for response
-    # used_tokens += tokenizer.count_tokens(response).total_tokens
+    used_tokens += tokenizer.count_tokens(response).total_tokens
 
-    return jsonify({"response": "", "usedTokens": used_tokens})
+    return jsonify({"response": response, "usedTokens": used_tokens})
 
 # Endpoint to handle the task of generating questions of specific types on a specific document the user chooses
 

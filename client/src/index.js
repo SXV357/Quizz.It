@@ -11,6 +11,7 @@ import SignUp from './SignUp';
 import Login from "./Login"
 import Landing from './Landing';
 import ForgotPassword from "./ForgotPassword"
+import Chatbot from "./Chatbot"
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -22,7 +23,8 @@ const routes = [{path: "/", component: <Landing />},
                 {path: "/fetch_summarize_files", component: <SummarySelection />},
                 {path: "/summary_page", component: <SummaryPage />},
                 {path: "/fetch_questions_files", component: <QGenerationSelection />},
-                {path: "/fetch_ask_questions_files", component: <QAnsweringSelection />}]
+                {path: "/fetch_ask_questions_files", component: <QAnsweringSelection />},
+                {path: "/chatbot_page", component: <Chatbot />}]
 
 root.render(
   <React.StrictMode>
