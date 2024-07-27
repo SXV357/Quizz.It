@@ -5,6 +5,7 @@ import "./chatbot.css"
 export default function Chatbot() {
 
   const [query, setQuery] = useState("")
+  const [isDisabled, setIsDisabled] = useState(false)
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -21,20 +22,21 @@ export default function Chatbot() {
     if (query.trim() === "") return;
 
     const sessionHistory = sessionStorage.getItem("history");
-    let userMessages = sessionHistory !== null ? JSON.parse(sessionHistory)["user"] : []
-    let botResponses = sessionHistory !== null ? JSON.parse(sessionHistory)["bot"] : [];
+    let userMessages = sessionHistory? JSON.parse(sessionHistory)["user"] : []
+    let botResponses = sessionHistory ? JSON.parse(sessionHistory)["bot"] : [];
     let localHistory = {user: userMessages, bot: botResponses};
 
     const usedTokens = sessionStorage.getItem("usedTokens");
-    let localUsedTokens = usedTokens !== null ? JSON.parse(usedTokens) : 0;
+    let localUsedTokens = usedTokens ? JSON.parse(usedTokens) : 0;
 
     const conversation = document.getElementById("conversationContainer");
 
     let userElem = document.createElement("div")
     userElem.className = "message user-message"
-    userElem.innerHTML = `User: ${query}`
+    userElem.innerHTML = query
     conversation.appendChild(userElem);
 
+    setIsDisabled(true)
     fetch (`http://127.0.0.1:5000/get_model_response`, {
       method: "POST",
       headers: {
@@ -48,14 +50,21 @@ export default function Chatbot() {
     })
       .then((res) => res.json())
       .then((data) => {
+        setQuery("");
         const response = data["response"]
         const usedTokens = data["usedTokens"]
+        const updatedHistory = data["updatedHistory"];
         
         // appending bot message to conversation container
         let botElem = document.createElement("div")
         botElem.className = "message bot-message"
-        botElem.innerHTML = `Bot: ${response}`
+        botElem.innerHTML = response
         conversation.appendChild(botElem);
+
+        if (updatedHistory) {
+          localHistory = updatedHistory;
+          sessionStorage.setItem("history", JSON.stringify(localHistory))
+        }
         
         // updating conversation history with latest interaction
         localHistory["user"].push(query);
@@ -64,8 +73,6 @@ export default function Chatbot() {
         
         // updating number of used tokens in session storage
         sessionStorage.setItem("usedTokens", usedTokens)
-
-        setQuery("");
       })
   }
 
@@ -89,8 +96,16 @@ export default function Chatbot() {
           id="questionInput" 
           value = {query} 
           onChange = {(e) => setQuery(e.target.value)}
+          disabled = {isDisabled}
         />
-        <button type="button" id="getResponseButton" onClick = {(e) => fetchAnswer(e)}>Submit Query</button>
+        <button 
+          type="button" 
+          id="getResponseButton" 
+          onClick = {(e) => fetchAnswer(e)}
+          disabled = {isDisabled}
+        >
+        Submit Query
+        </button>
     </div>
     </>
   )

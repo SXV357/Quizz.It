@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
 import requests
@@ -24,18 +24,26 @@ from langchain_core.messages.human import HumanMessage
 from langchain_core.messages.ai import AIMessage
 from vertexai.preview import tokenization
 
-# to-dos
-    # implement history truncation logic on backend and integrate with frontend
-    # implement logic to process pdfs under a certain page limit as they shouldn't be allowed to upload books or whatnot
-
 load_dotenv()
 
-GOOGLE_API_KEY=os.environ.get("GOOGLE_API_KEY")
-genai.configure(api_key=GOOGLE_API_KEY)
+genai.configure()
 GEMINI_MAX_TOKENS = 1_048_576
 tokenizer = tokenization.get_tokenizer_for_model("gemini-1.5-flash")
 
 answer_retriever = None
+conversation_threads = deque() # (history, query, response)
+
+system_prompt = (
+    "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise."
+    "\n\n"
+    "{context}"
+)
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", system_prompt),
+    MessagesPlaceholder("chat_history"),
+    ("human", "{input}")
+])
 
 firebase_admin.initialize_app(
     credentials.Certificate({ \
@@ -205,18 +213,20 @@ def invoke_doc_processal():
     # reset it to NULL each time before a new chain is created for the current document
     global answer_retriever
     answer_retriever = None
+    conversation_threads.clear()
 
-    print(f"answer retriever before selecting a new file: {answer_retriever}")
+    # print(f"answer retriever before selecting a new file: {answer_retriever}")
 
     file = request.args.get("file")
     username = request.args.get("username")
     initialize_qa_chain(file, username)
+
+    # print(f"answer retriever after creating a new chain: {answer_retriever}")
+
     return jsonify({"status": "OK"})
 
 def initialize_qa_chain(file: str, username: str) -> None:
     global answer_retriever
-    file = request.args.get("file")
-    username = request.args.get("username")
 
     blob = bucket.blob(f"{username}/{file}")
     url = blob.generate_signed_url(datetime.now() + timedelta(hours=24))
@@ -224,74 +234,72 @@ def initialize_qa_chain(file: str, username: str) -> None:
     assert req.status_code == 200
     text_contents = extract_file_contents(req.content)
 
-    docs = []
-    for page in text_contents:
-        docs.append(Document(page_content=text_contents[page], metadata={"source": file}))
+    docs = [Document(page_content=text_contents[page], metadata={"source": file}) for page in text_contents]
     
     splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=400)
     split_docs = splitter.split_documents(docs)
     db = Chroma.from_documents(split_docs, GoogleGenerativeAIEmbeddings(
-        google_api_key=GOOGLE_API_KEY,
         model="models/embedding-001"
     ))
     retriever = db.as_retriever(search_kwargs={"k": 3})
 
-    system_prompt = (
-        "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise."
-        "\n\n"
-        "{context}"
-    )
-
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", system_prompt),
-        MessagesPlaceholder("chat_history"),
-        ("human", "{input}")
-    ])
-
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
     doc_chain = create_stuff_documents_chain(llm, prompt)
     retrieval_chain = create_retrieval_chain(retriever, doc_chain)
 
     answer_retriever = retrieval_chain
-    print(f"answer retriever after creating a new chain: {answer_retriever}")
 
 @app.route("/get_model_response", methods = ["POST"])
 def fetch_response():
     data = request.json
     query, history, used_tokens = data.get("query"), data.get("history"), data.get("usedTokens")
+    modified_history, history_tokens = deque(), 0
+    token_limit_exceeded = False
 
-    print(f"query: {query}")
-    print(f"history: {history}")
+    history["user"] = deque(history["user"])
+    history["bot"] = deque(history["bot"])
 
-    query_tokens = tokenizer.count_tokens(query).total_tokens
-    used_tokens += query_tokens
-
-    # handle chat history truncation here
-    # if query_tokens + used_tokens >= GEMINI_MAX_TOKENS:
-    #     current = query_tokens + used_tokens
-    #     while current >= GEMINI_MAX_TOKENS:
-    #         pass
-
-    modified_history = []
     if history["user"] and history["bot"]:
-        contents = list(zip(history["user"], history["bot"]))
+        contents = list(zip(list(history["user"]), list(history["bot"])))
         for user, bot in contents:
+            history_tokens += tokenizer.count_tokens(user).total_tokens
+            history_tokens += tokenizer.count_tokens(bot).total_tokens
             modified_history.append(HumanMessage(user))
             modified_history.append(AIMessage(bot))
-        
-    #     # updating tokens for history passed in
-    #     for el in contents:
-    #         used_tokens += tokenizer.count_tokens(el.content).total_tokens
+
+    query_tokens = tokenizer.count_tokens(query).total_tokens
+
+    # handle chat history truncation
+    if query_tokens + used_tokens >= GEMINI_MAX_TOKENS:
+        token_limit_exceeded = True
+        current = query_tokens + used_tokens
+        while current >= GEMINI_MAX_TOKENS:
+            convo_history, question, answer = conversation_threads.popleft()
+            current -= (convo_history[1] + question[1] + answer[1])
+            used_tokens -= (convo_history[1] + question[1] + answer[1])
+
+            # removing one interaction
+            modified_history.popleft()
+            modified_history.popleft()
+
+            history["user"].popleft()
+            history["bot"].popleft()
     
     # including tokens used for query
-    used_tokens += tokenizer.count_tokens(query).total_tokens
+    used_tokens += query_tokens
     
-    response = answer_retriever.invoke({"input": query, "chat_history": modified_history})["answer"]
-
+    response = answer_retriever.invoke({"input": query, "chat_history": list(modified_history)})["answer"]
+    response_tokens = tokenizer.count_tokens(response).total_tokens
     # including tokens used for response
-    used_tokens += tokenizer.count_tokens(response).total_tokens
+    used_tokens += response_tokens
 
-    return jsonify({"response": response, "usedTokens": used_tokens})
+    conversation_threads.append(([modified_history, history_tokens], [query, query_tokens], [response, response_tokens]))
+
+    if token_limit_exceeded:
+        history["user"] = list(history["user"])
+        history["bot"] = list(history["bot"])
+
+    return jsonify({"response": response, "usedTokens": used_tokens, "updatedHistory": history if token_limit_exceeded else None})
 
 # Endpoint to handle the task of generating questions of specific types on a specific document the user chooses
 

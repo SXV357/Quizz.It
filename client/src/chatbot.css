@@ -1,6 +1,6 @@
 #conversationContainer {
     width: 60%; /* Fixed width */
-    margin: 0 auto; /* Center the container */
+    margin: 50px auto; /* Center the container */
     border: 1px solid #000; /* Optional: border for the container */
     padding: 20px; /* Padding inside the container */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: box shadow for better visual */
@@ -8,8 +8,8 @@
     overflow-y: auto; /* Scroll if the content overflows */
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* Align items to the start for proper overflow */
+    gap: 10px; /* Space between messages */
 }
 
 /* Styling for individual messages */

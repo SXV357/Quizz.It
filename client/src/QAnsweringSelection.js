@@ -35,7 +35,7 @@ export default function QAnsweringSelection() {
       .then(res => res.json())
       .then(data => {
         if (data.status === "OK") {
-          setQaFileSelectionStatus("Please wait as the document is being processed...")
+          setQaFileSelectionStatus("")
           navigate("/chatbot_page", {state: username})
         }
       })
