@@ -36,6 +36,11 @@ export default function Chatbot() {
     userElem.innerHTML = query
     conversation.appendChild(userElem);
 
+    let loader = document.createElement("div")
+    loader.id = "loader"
+    loader.className = "loader"
+    conversation.appendChild(loader);
+
     setIsDisabled(true)
     fetch (`http://127.0.0.1:5000/get_model_response`, {
       method: "POST",
@@ -51,15 +56,25 @@ export default function Chatbot() {
       .then((res) => res.json())
       .then((data) => {
         setQuery("");
+        setIsDisabled(false);
+        conversation.removeChild(loader);
+        
         const response = data["response"]
         const usedTokens = data["usedTokens"]
         const updatedHistory = data["updatedHistory"];
+
+        console.log(`response: ${response}`)
+        console.log(`used tokens: ${usedTokens}`)
+        console.log(`updated history: ${updatedHistory}`)
         
         // appending bot message to conversation container
         let botElem = document.createElement("div")
         botElem.className = "message bot-message"
         botElem.innerHTML = response
         conversation.appendChild(botElem);
+
+        // updating number of used tokens in session storage
+        sessionStorage.setItem("usedTokens", usedTokens)
 
         if (updatedHistory) {
           localHistory = updatedHistory;
@@ -70,9 +85,6 @@ export default function Chatbot() {
         localHistory["user"].push(query);
         localHistory["bot"].push(response);
         sessionStorage.setItem("history", JSON.stringify(localHistory))
-        
-        // updating number of used tokens in session storage
-        sessionStorage.setItem("usedTokens", usedTokens)
       })
   }
 
@@ -102,7 +114,12 @@ export default function Chatbot() {
           type="button" 
           id="getResponseButton" 
           onClick = {(e) => fetchAnswer(e)}
-          disabled = {isDisabled}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              fetchAnswer(e)
+            }
+          }}
+          disabled = {query === "" || isDisabled}
         >
         Submit Query
         </button>

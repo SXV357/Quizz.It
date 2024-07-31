@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request, send_file
 import requests
 from ocr import *
 import os
+from PyPDF2 import PdfReader
 from flask_cors import CORS
 from fpdf import FPDF
 from email_validator import validate_email, EmailNotValidError
@@ -11,7 +12,6 @@ import firebase_admin
 from firebase_admin import credentials, storage
 from dotenv import load_dotenv
 import io
-from werkzeug.exceptions import RequestEntityTooLarge
 from langchain_chroma import Chroma
 from langchain.docstore.document import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -26,7 +26,8 @@ from vertexai.preview import tokenization
 
 load_dotenv()
 
-genai.configure()
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
+genai.configure(api_key=GOOGLE_API_KEY)
 GEMINI_MAX_TOKENS = 1_048_576
 tokenizer = tokenization.get_tokenizer_for_model("gemini-1.5-flash")
 
@@ -60,9 +61,13 @@ firebase_admin.initialize_app(
     }), {'storageBucket': os.environ.get('STORAGE_BUCKET')})
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024 # 100MB
 CORS(app)
 bucket = storage.bucket()
+
+def extract_file_contents(file_bytes: bytes) -> Dict[str, str]:
+    pdf_images = convert_to_image(file_bytes)
+    text_contents = process_pdf_page(pdf_images) 
+    return text_contents
 
 # Endpoint to check the existence of files for this given user in the database
 @app.route("/check_files", methods = ["GET"])
@@ -128,6 +133,11 @@ def process_uploaded_file():
                 return jsonify({"status": "Please make sure you upload a non-empty document"})
             file.seek(0)
 
+            # check how many pages it has
+            reader = PdfReader(file)
+            if len(reader.pages) > 75:
+                return jsonify({"status": "PDFs with a page count greater than 75 are not allowed. Please try again!"})
+
             return jsonify({"status": "PDF OK"})
             
             # output_name = name if extension == 'pdf' else name[:name.rfind('.')] + '.pdf'
@@ -148,18 +158,9 @@ def process_uploaded_file():
             #     blob.upload_from_string(output_file.read(), content_type="application/pdf")
             
             # return jsonify({"status": "File uploaded successfully"})
-             
-    except RequestEntityTooLarge as e:
-        print(e)
-        return jsonify({"status": "File uploaded exceedss the maximum size of 100MB. Please select a different one and try again!"})
     except Exception as e: 
         print(e)
         return jsonify({"status": "Error when uploading the file. Please try again!"})
-
-def extract_file_contents(file_bytes: bytes) -> Dict[str, str]:
-    pdf_images = convert_to_image(file_bytes)
-    text_contents = process_pdf_page(pdf_images) 
-    return text_contents
 
 # Endpoint for generating summary of text and sending that back to the server along with the calculated text statistics
 @app.route("/generate_summary", methods = ["GET"])
@@ -243,7 +244,7 @@ def initialize_qa_chain(file: str, username: str) -> None:
     ))
     retriever = db.as_retriever(search_kwargs={"k": 3})
 
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
     doc_chain = create_stuff_documents_chain(llm, prompt)
     retrieval_chain = create_retrieval_chain(retriever, doc_chain)
 
@@ -253,20 +254,20 @@ def initialize_qa_chain(file: str, username: str) -> None:
 def fetch_response():
     data = request.json
     query, history, used_tokens = data.get("query"), data.get("history"), data.get("usedTokens")
+
     modified_history, history_tokens = deque(), 0
     token_limit_exceeded = False
 
-    history["user"] = deque(history["user"])
-    history["bot"] = deque(history["bot"])
-
     if history["user"] and history["bot"]:
-        contents = list(zip(list(history["user"]), list(history["bot"])))
+        contents = list(zip(history["user"], history["bot"]))
+        # include tokens for whatever history is passed in 
         for user, bot in contents:
-            history_tokens += tokenizer.count_tokens(user).total_tokens
-            history_tokens += tokenizer.count_tokens(bot).total_tokens
+            total = tokenizer.count_tokens(user).total_tokens + tokenizer.count_tokens(bot).total_tokens
+            history_tokens += total
+            used_tokens += total
             modified_history.append(HumanMessage(user))
             modified_history.append(AIMessage(bot))
-
+    
     query_tokens = tokenizer.count_tokens(query).total_tokens
 
     # handle chat history truncation
@@ -274,30 +275,28 @@ def fetch_response():
         token_limit_exceeded = True
         current = query_tokens + used_tokens
         while current >= GEMINI_MAX_TOKENS:
-            convo_history, question, answer = conversation_threads.popleft()
-            current -= (convo_history[1] + question[1] + answer[1])
-            used_tokens -= (convo_history[1] + question[1] + answer[1])
+            h_tokens, q_tokens, ans_tokens = conversation_threads.popleft()
+            overall = h_tokens + q_tokens + ans_tokens
+            current -= overall
+            used_tokens -= overall
 
             # removing one interaction
             modified_history.popleft()
             modified_history.popleft()
 
-            history["user"].popleft()
-            history["bot"].popleft()
+            history["user"].pop(0)
+            history["bot"].pop(0)
     
     # including tokens used for query
     used_tokens += query_tokens
     
     response = answer_retriever.invoke({"input": query, "chat_history": list(modified_history)})["answer"]
     response_tokens = tokenizer.count_tokens(response).total_tokens
+
     # including tokens used for response
     used_tokens += response_tokens
 
-    conversation_threads.append(([modified_history, history_tokens], [query, query_tokens], [response, response_tokens]))
-
-    if token_limit_exceeded:
-        history["user"] = list(history["user"])
-        history["bot"] = list(history["bot"])
+    conversation_threads.append((history_tokens, query_tokens, response_tokens))
 
     return jsonify({"response": response, "usedTokens": used_tokens, "updatedHistory": history if token_limit_exceeded else None})
 
