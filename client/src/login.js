@@ -47,8 +47,6 @@ export default function Login() {
         return;
       }
     } catch (e) {
-      // console.log(e.code);
-      // console.log(e.message);
       switch (e.code) {
         case "auth/invalid-email": 
           setValidationStatus("The provided email is not in the right format. Please enter a valid one and try again"); break;
@@ -112,7 +110,7 @@ export default function Login() {
                 )
               }}
             />
-            <div className = "status" style = {{color: "rgb(255, 0, 0)", textAlign: "center"}}>{validationStatus}</div>
+            <div className = "validationStatus" style = {{color: "rgb(255, 0, 0)", textAlign: "center"}}>{validationStatus}</div>
             <Button
               type="submit"
               fullWidth

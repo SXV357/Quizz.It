@@ -1,5 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import "./styles/answering.css"
+import "./styles/selection.css"
 
 export default function QAnsweringSelection() {
 
@@ -23,6 +25,7 @@ export default function QAnsweringSelection() {
     let fileType = document.getElementById("askQuestionFileSelect");
 
     const selectedFile = Array.from(fileType.options).filter(option => option.selected).map(option => option.value)[0];
+
     if (selectedFile === undefined) {
       setQaFileSelectionStatus("You need to select a file!");
       return;
@@ -44,6 +47,7 @@ export default function QAnsweringSelection() {
   return (
     <>
       <div id="container">
+      <h2>Document Q/A File Selection</h2>
         <form id="questionForm">
             <label htmlFor="askQuestionFileSelect">Select a file that you would like to ask questions about</label>
             <select id="askQuestionFileSelect" name="askQuestionFileSelect">
@@ -51,13 +55,13 @@ export default function QAnsweringSelection() {
                     return <option key = {idx} value = {file}>{file}</option>
                 })}
             </select>
-            <button type="button" id="selectFileButton" onClick = {(e) => selectFile(e)}>Chat about this file</button>
+            <button type="button" id="btn" onClick = {(e) => selectFile(e)}>Chat about this file</button>
         </form> 
-        <button className = "toHomePage" type = "button" onClick = {(e) => {
+        <button id = "toHomePage" type = "button" onClick = {(e) => {
           e.preventDefault();
           navigate("/app", {state: username});
         }}>Go To Home Page</button>
-        <div className = "qaFileSelectionStatus" style = {{textAlign: "center"}}>{qaFileSelectionStatus}</div>
+        <div className = "status" style = {{textAlign: "center"}}>{qaFileSelectionStatus}</div>
     </div>
     </>
   )

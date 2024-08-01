@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import { useLocation, useNavigate} from 'react-router-dom'
-import "./chatbot.css"
+import "./styles/chatbot.css"
 
 export default function Chatbot() {
 
@@ -91,6 +91,7 @@ export default function Chatbot() {
   return (
     <>
       <button 
+      className = "back-btn"
       style = {{position: "absolute", top: 0, left: 0, margin: "10px"}}
       onClick = {() => {
         sessionStorage.removeItem("history")

@@ -12,6 +12,26 @@
     gap: 10px; /* Space between messages */
 }
 
+.back-btn {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 10px;
+    background-color: #007bff;
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.back-btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
 /* Styling for individual messages */
 .message {
     padding: 10px 15px; /* Padding for the messages */
@@ -82,10 +102,10 @@
 }
 
 #questionInput {
-    flex-grow: 1; /* Input takes available space */
-    padding: 10px; /* Padding for input */
-    border: 1px solid #ccc; /* Border color */
-    border-radius: 4px; /* Rounded corners for input */
+    flex-grow: 1; 
+    padding: 10px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
     font-size: 16px; /* Font size for input */
     outline: none; /* Remove default outline */
     transition: border-color 0.3s; /* Smooth transition for focus */
@@ -96,16 +116,16 @@
 }
 
 #getResponseButton {
-    padding: 10px 20px; /* Padding for button */
-    background-color: #3498db; /* Button background color */
-    color: white; /* Button text color */
-    border: none; /* Remove default border */
-    border-radius: 4px; /* Rounded corners for button */
-    font-size: 16px; /* Font size for button */
-    cursor: pointer; /* Pointer cursor on hover */
-    transition: background-color 0.3s; /* Smooth transition for hover */
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s; 
 }
 
 #getResponseButton:hover {
-    background-color: #2980b9; /* Darker background on hover */
+    background-color: #2980b9;
 }

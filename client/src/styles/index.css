@@ -7,25 +7,22 @@
 }
 
 .navbar {
-  background: #131313;
-  height: 80px;
+  width: 100%;
+  background-color: #131313;
+  padding: 10px 20px;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1.2rem;
-  position: sticky;
-  top: 0;
-  z-index: 999;
+  color: #fff;
+  font-family: Arial, sans-serif;
 }
+
 .navbar__container {
+  width: 100%;
+  max-width: 1200px;
   display: flex;
   justify-content: space-between;
-  height: 80px;
-  z-index: 1;
-  width: 100%;
-  max-width: 1300px;
-  margin: 0 auto;
-  padding: 0 50px;
+  align-items: center;
 }
 
 #navbar__logo {
@@ -39,43 +36,41 @@
   -moz-text-fill-color: transparent;
   display: flex;
   align-items: center;
-  cursor: pointer;
   text-decoration: none;
   font-size: 2rem;
 }
 
-.navbar__menu {
+.navbar__buttons {
   display: flex;
-  align-items: center;
-  list-style: none;
+  gap: 10px;
 }
 
-.navbar__item {
-  height: 80px;
-  padding: 20px;
+.navbar__button {
+  background-color: #007bff;;
+  border: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 5px;
+  color: #fff;
+  transition: background-color 0.3s ease;
 }
 
-.navbar__links {
-  color: #87ceeb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 125px;
-  text-decoration: none;
-  height: 100%;
-  transition: all 0.3s ease;
+.navbar__button:hover {
+  background-color: #0056b3;
 }
 
-
-.navbar__links:hover {
-  color: #004080;
-  transition: all 0.3s ease;
+.navbar__button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #007bff;
 }
 
+/* Intro Section */
 .intro {
-  background: #000000;
   background: linear-gradient(to right, #161616, #000000);
-  padding: 200px 0;
+  padding: 150px 0;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
@@ -87,29 +82,19 @@
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
-  height: 90%;
   text-align: center;
   padding: 30px;
 }
 
 .intro__heading {
-  font-size: 100px;
+  font-size: 80px;
   margin-bottom: 24px;
   color: #fff;
+  line-height: 1.2;
 }
 
 .intro__heading span {
-  background: rgb(0, 255, 255);
-  background: -webkit-linear-gradient(
-          to right,
-          rgb(9, 130, 130),
-          rgb(6, 87, 87)
-  );
-  background: linear-gradient(
-          to right,
-          rgb(87, 236, 236),
-          rgb(6, 87, 87)
-  );
+  background: linear-gradient(to right, rgb(87, 236, 236), rgb(6, 87, 87));
   background-size: 100%;
   -webkit-background-clip: text;
   -moz-background-clip: text;
@@ -119,18 +104,8 @@
 }
 
 .intro__description {
-  font-size: 45px;
-  background: aquamarine;
-  background: -webkit-linear-gradient(
-          to right,
-          aquamarine,
-          aquamarine
-  );
-  background: linear-gradient(
-          to right,
-          aquamarine,
-          aquamarine
-  );
+  font-size: 35px;
+  background: linear-gradient(to right, aquamarine, aquamarine);
   background-size: 100%;
   -webkit-background-clip: text;
   -moz-background-clip: text;
@@ -153,45 +128,45 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 20px;
+  width: 100%;
 }
 
-/* File Input */
 .select__button {
-  padding: 8px;
+  padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 16px;
   background-color: #fff;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-/* Submit Button */
+.select__button:hover {
+  border-color: #007bff;
+}
+
 .upload__button {
-  padding: 8px 16px;
+  padding: 12px 20px;
   border: none;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   background-color: #007bff;
   color: #fff;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .upload__button:hover {
   background-color: #0056b3;
+  transform: translateY(-2px);
 }
 
-/* File Upload Status */
 .file_upload_status {
-  margin-top: 15px;
-  font-size: 14px;
+  margin-top: 20px;
+  font-size: 16px;
   color: #fff;
   text-align: center;
-}
-
-#quizzit {
-  color: #001A33;
 }
 
 .summaryFilesStatus, .generateQuestionFilesStatus, .askQuestionFilesStatus {
@@ -201,117 +176,104 @@
   font-weight: bold;
 }
 
-/*options css*/
-
+/* Options Section */
 .options {
   background: #131313;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100%;
-  padding: 10rem 0;
+  min-height: 100vh;
+  padding: 5rem 2rem;
 }
 
 .options h1 {
-  background-color: #ff8177;
-  background-image: linear-gradient(to right, rgb(0, 255, 255), rgb(87, 236, 236), rgb(6, 87, 87) 100%);
+  background-image: linear-gradient(to right, rgb(0, 255, 255), rgb(87, 236, 236), rgb(6, 87, 87));
   background-size: 100%;
-  text-decoration-color: #ffb199;
   -webkit-background-clip: text;
-  -moz-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  -moz-text-fill-color: transparent;
-  margin-bottom: 5rem;
+  margin-bottom: 3rem;
   font-size: 2.5rem;
+  text-align: center;
 }
 
 .options__wrapper {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
 }
 
 .options__card {
-  margin: 10px;
-  height: 425px;
-  width: 300px;
-  border-radius: 4px;
+  padding: 2rem;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   color: #fff;
-  background-image: linear-gradient(to right, rgb(0, 255, 255), rgb(87, 236, 236), rgb(6, 87, 87)f 100%);
-  transition: 0.3s ease-in;
+  background: linear-gradient(to right, rgb(0, 255, 255), rgb(87, 236, 236), rgb(6, 87, 87));
+  transition: transform 0.3s ease-in, box-shadow 0.3s ease-in;
 }
 
 .options__card h2 {
+  margin-bottom: 1rem;
   text-align: center;
+  font-size: 1.75rem;
 }
 
 .options__card p {
   text-align: center;
-  margin-top: 24px;
-  font-size: 20px;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
 }
 
 .summary_button, .questions_button, .ask_question_button {
   display: flex;
   justify-content: center;
-  margin-top: 16px;
+  width: 100%;
 }
 
 .options__card button {
   color: #fff;
-  padding: 14px 24px;
+  padding: 10px 20px;
   border: none;
   outline: none;
   border-radius: 4px;
   background: #131313;
   font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .options__card button:hover {
   cursor: pointer;
+  background-color: #007bff;
+  transform: translateY(-2px);
 }
 
 .options__card:hover {
-  transform: scale(1.075);
-  transition: 0.3s ease-in;
-  cursor: pointer;
+  transform: scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
 .options__card:nth-child(1) {
-  background-image: linear-gradient(
-          -225deg,
-          #245b81,
-          #12d8fa,
-          #a6ffcb
-  );
+  background-image: linear-gradient(to right, #245b81, #12d8fa, #a6ffcb);
 }
 
 .options__card:nth-child(2) {
-  background: #1fa2ff;
-  background: -webkit-linear-gradient(
-          to right,
-          #a6ffcb,
-          #12d8fa,
-          #1fa2ff
-  );
-  background: linear-gradient(
-          -225deg,
-          #a6ffcb,
-          #12d8fa,
-          #245b81
-  );
+  background-image: linear-gradient(to right, #a6ffcb, #12d8fa, #1fa2ff);
 }
 
 .options__card:nth-child(3) {
-  background-image: linear-gradient(
-          -225deg,
-          #245b81,
-          #12d8fa,
-          #a6ffcb
-  );
+  background-image: linear-gradient(to right, #245b81, #12d8fa, #a6ffcb);
+}
+
+/* File Upload Status */
+.file_upload_status {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #fff;
+  text-align: center;
 }

@@ -61,34 +61,12 @@ export default function App() {
             setFileUploadStatus(data.status);
           }
         })
-      // let fileName = file_input.files[0].name;
-      // console.log(`Original file name: ${fileName}`)
-      // if (res.headers.get('content-type') === 'application/json') {
-      //   return res.json().then((data) => {
-      //     if (data.status === "PDF OK") {
-      //       console.log("Uploaded file is a PDF file and it passed all checks");
-      //       uploadFileToStorage(fileName, file_input.files[0]);
-      //     } else {
-      //       setFileUploadStatus(data.status);
-      //     }
-      //   }).catch((e) => console.log(`Error: ${e}`))
-      // } 
-      // else {
-      //   return res.blob().then((blob) => {
-      //     console.log(`blob: ${typeof blob}`)
-      //     console.log(blob)
-      //     // console.log(`received file from the backend: ${blob} `)
-      //     fileName = fileName.substring(0, fileName.lastIndexOf(".")) + ".pdf";
-      //     uploadFileToStorage(fileName, blob);
-      //   }).catch((e) => console.log(`Error: ${e}`))
-      // }
     } else {
       setFileUploadStatus("Make sure you have provided a file");
     }
   }
 
   const determine_route = (e, page) => {
-    // on the backend the logic will be implemented such that the number of uploaded documents for this user will be fetched and depending on that a status message will be updated
     e.preventDefault();
     fetch(`http://127.0.0.1:5000/check_files?username=${username}`, {
         method: "GET"
@@ -115,16 +93,13 @@ export default function App() {
   return (
     <>
       <nav className="navbar">
-        <div className="navbar__container">
-          <a href="#home" id="navbar__logo">QuizzIt</a>
-          <button onClick = {(e) => logOut(e)}>Sign Out</button>
-          <button onClick = {() => navigate("/forgot_password")}>Forgot Password?</button>
-          <div className="navbar__toggle" id="mobile-menu">
-            <span className="bar"></span>
-            <span className="bar"></span>
-            <span className="bar"></span>
+          <div className="navbar__container">
+              <div id="navbar__logo">QuizzIt</div>
+              <div className="navbar__buttons">
+                  <button onClick={(e) => logOut(e)} className="navbar__button">Sign Out</button>
+                  <button onClick={() => navigate("/forgot_password")} className="navbar__button">Forgot Password?</button>
+              </div>
           </div>
-        </div>
       </nav>
 
       <div className="intro" id="home">
@@ -148,19 +123,25 @@ export default function App() {
             <div className="options__card">
                 <h2>Document too long?</h2>
                 <p>We got your back!</p>
-                <div className="summary_button"><button onClick = {(e) => determine_route(e, "summary")}>Generate Summary</button></div>
+                <div className="summary_button">
+                    <button onClick={(e) => determine_route(e, "summary")}>Generate Summary</button>
+                </div>
                 <div className="summaryFilesStatus">{summaryFileStatus}</div>
             </div>
             <div className="options__card">
                 <h2>Studying for a test?</h2>
                 <p>We can quiz you!</p>
-                <div className="questions_button"><button onClick = {(e) => determine_route(e, "questionGeneration")}>Generate Test Questions</button></div>
+                <div className="questions_button">
+                    <button onClick={(e) => determine_route(e, "questionGeneration")}>Generate Test Questions</button>
+                </div>
                 <div className="generateQuestionFilesStatus">{generateQuestionFileStatus}</div>
             </div>
             <div className="options__card">
                 <h2>Have questions about the document?</h2>
                 <p>We can help you with that</p>
-                <div className="ask_question_button"><button onClick = {(e) => determine_route(e, "chatbot")}>Ask a Question</button></div>
+                <div className="ask_question_button">
+                    <button onClick={(e) => determine_route(e, "chatbot")}>Ask a Question</button>
+                </div>
                 <div className="askQuestionFilesStatus">{askQuestionFileStatus}</div>
             </div>
         </div>

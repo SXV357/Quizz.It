@@ -4,7 +4,6 @@ import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
@@ -73,9 +72,6 @@ export default function ForgotPassword() {
             return;
           }
 
-          // check if the new password is the same as the old one and if not only then update
-          // when new user is created store their username and password in firestore and then reference that when doing this
-
           const q = query(collection(db, "users"), where("email", "==", email));
           const snapshot = await getDocs(q);
           const docs = snapshot.docs;
@@ -109,8 +105,6 @@ export default function ForgotPassword() {
           }
         }
     } catch (e) {
-      // console.log(e.message);
-      // console.log(e.code);
       if (e.code === "auth/missing-email") {
         setValidationStatus("The email you have entered is invalid. Please enter a valid one and try again!");
         return;
@@ -170,13 +164,13 @@ export default function ForgotPassword() {
               }}
             />
             <div className = "pw-reqs" style = {{display: "grid", gridTemplateRows: "repeat(3, 1fr)", gridTemplateColumns: "repeat(2, 1fr)", margin: "0 auto", marginTop: "10px", columnGap: "15px"}}>
-                <li style = {{color: `${hasMinChars ? "rgb(0, 255, 0)" : "rgb(0, 0, 0)"}`}}>8 characters</li>
-                <li style = {{color: `${hasLowercase ? "rgb(0, 255, 0)" : "rgb(0, 0, 0)"}`}}>One lowercase letter</li>
-                <li style = {{color: `${hasUpperCase ? "rgb(0, 255, 0)" : "rgb(0, 0, 0)"}`}}>One uppercase letter</li>
-                <li style = {{color: `${hasNumber ? "rgb(0, 255, 0)" : "rgb(0, 0, 0)"}`}}>One number</li>
-                <li style = {{color: `${hasSpecial ? "rgb(0, 255, 0)" : "rgb(0, 0, 0)"}`}}>One special character</li>
+                <li style = {{color: `${hasMinChars ? "#009E60" : "#000"}`}}>8 characters</li>
+                <li style = {{color: `${hasLowercase ? "#009E60" : "#000"}`}}>One lowercase letter</li>
+                <li style = {{color: `${hasUpperCase ? "#009E60" : "#000"}`}}>One uppercase letter</li>
+                <li style = {{color: `${hasNumber ? "#009E60" : "#000"}`}}>One number</li>
+                <li style = {{color: `${hasSpecial ? "#009E60" : "#000"}`}}>One special character</li>
               </div>
-            <div className = "status" style = {{color: "rgb(255, 0, 0)", textAlign: "center"}}>{validationStatus}</div>
+            <div className = "validationStatus" style = {{color: "rgb(255, 0, 0)", textAlign: "center", marginTop: "20px"}}>{validationStatus}</div>
             <Button
               type="submit"
               fullWidth

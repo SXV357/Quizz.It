@@ -5,7 +5,6 @@ import "./styles/summary.css"
 export default function SummaryPage() {
     const location = useLocation();
     const navigate = useNavigate();
-    // destructing the props data passed in directly via the navigate instance
     const {summarized_text, statistics, username} = location.state;
 
     return (

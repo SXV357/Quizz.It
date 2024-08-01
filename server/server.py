@@ -122,9 +122,6 @@ def process_uploaded_file():
             extension = name[name.rfind(".") + 1:]
             if extension != "pdf":
                 return jsonify({"status": "Make sure you upload a PDF file only!"})
-            
-            # if extension not in ["pdf", "docx", "txt"]:
-            #     return jsonify({"status": "Make sure you upload a PDF, TXT, or DOCX file only!"})
 
             # check whether file is not empty after determinining if its a valid document to ensure tesseract compatibility
             file.seek(0, os.SEEK_END)
@@ -137,32 +134,13 @@ def process_uploaded_file():
             reader = PdfReader(file)
             if len(reader.pages) > 75:
                 return jsonify({"status": "PDFs with a page count greater than 75 are not allowed. Please try again!"})
-
+            
             return jsonify({"status": "PDF OK"})
-            
-            # output_name = name if extension == 'pdf' else name[:name.rfind('.')] + '.pdf'
-            # print(f"Output name: {output_name}")
-            # blob = bucket.blob(f"{username}/{output_name}")
-
-            # if extension == "pdf":
-            #     # return jsonify({"status": "PDF OK"})
-            #     blob.upload_from_file(file, content_type='application/pdf')
-            # else:
-            #     contents = file.read()
-            #     output_file = io.BytesIO()
-            #     pypandoc.convert_text(contents, to = "pdf", format = "docx" if extension == "docx" else "markdown", outputfile=output_file)
-            #     output_file.seek(0)
-            #     # assert res == ""
-            #     # print(f"contents: {output_file.read()}")
-            #     # return send_file(output_file, mimetype="application/pdf")
-            #     blob.upload_from_string(output_file.read(), content_type="application/pdf")
-            
-            # return jsonify({"status": "File uploaded successfully"})
+        
     except Exception as e: 
         print(e)
         return jsonify({"status": "Error when uploading the file. Please try again!"})
 
-# Endpoint for generating summary of text and sending that back to the server along with the calculated text statistics
 @app.route("/generate_summary", methods = ["GET"])
 def summarize_text():
     username, file = request.args.get("username"), request.args.get("file")
@@ -206,9 +184,6 @@ def summarize_text():
     # returning a dictionary that contains a page-by-page summary of the document
     return jsonify({"summarized_text": list(summarized_text.items()), "statistics": text_statistics, "username": username})
 
-# Endpoint to handle the task of answering questions about a specific document the user chooses
-    # convert this to a conversational RAG based chatbot
-
 @app.route("/signal_doc_qa_selection", methods = ["POST"])
 def invoke_doc_processal():
     # reset it to NULL each time before a new chain is created for the current document
@@ -216,13 +191,9 @@ def invoke_doc_processal():
     answer_retriever = None
     conversation_threads.clear()
 
-    # print(f"answer retriever before selecting a new file: {answer_retriever}")
-
     file = request.args.get("file")
     username = request.args.get("username")
     initialize_qa_chain(file, username)
-
-    # print(f"answer retriever after creating a new chain: {answer_retriever}")
 
     return jsonify({"status": "OK"})
 
@@ -300,13 +271,12 @@ def fetch_response():
 
     return jsonify({"response": response, "usedTokens": used_tokens, "updatedHistory": history if token_limit_exceeded else None})
 
-# Endpoint to handle the task of generating questions of specific types on a specific document the user chooses
-
-@app.route("/generate_pdf", methods = ["GET"])
+@app.route("/generate_pdf", methods = ["POST"])
 def generate_questions_pdf():
-    question_types = request.args.get("questionTypes") # array of all the selected options
-    file = request.args.get("file")
-    username = request.args.get("username")
+    data = request.json
+    question_types = data.get("questionTypes") # array of all the selected options
+    file = data.get("file")
+    username = data.get("username")
 
     main_blob = bucket.blob(f"{username}/{file}")
     download_url = main_blob.generate_signed_url(datetime.now() + timedelta(hours=24))
@@ -327,7 +297,7 @@ def generate_questions_pdf():
         for i in range(0, len(split_docs), 5):
             doc_groups.append(split_docs[i:i+5])
 
-    system_prompt = f"You are a highly knowledgeable assistant tasked with generating insightful and useful questions based on the provided document text. Your goal is to help a user deepen their understanding of the document's content, whether they are studying for a test, preparing for a discussion, or seeking a more comprehensive grasp of the material. Depending on the text and its content, generate either one question or multiple questions that are clear, thought-provoking, and cover key concepts and details presented in the text. Ensure that the questions span the following types, if appropriate: {question_types.split(',')}. Include answer choices for multiple-choice questions and ensure all questions are in the same format without any headers. If the text block does not contain enough information to generate meaningful questions, simply respond with 'N/A'. Only provide the question(s) and not the answer(s)."
+    system_prompt = f"You are a highly knowledgeable assistant tasked with generating insightful and useful questions based on the provided document text. Your goal is to help a user deepen their understanding of the document's content, whether they are studying for a test, preparing for a discussion, or seeking a more comprehensive grasp of the material. Depending on the text and its content, generate either one question or multiple questions that are clear, thought-provoking, and cover key concepts and details presented in the text. Ensure that the questions span the following types, if appropriate: {question_types}. Include answer choices for multiple-choice questions and ensure all questions are in the same format without any headers. If the text block does not contain enough information to generate meaningful questions, simply respond with 'N/A'. Only provide the question(s) and not the answer(s)."
 
     def inject_prompt(text: str) -> str:
         return f"Generate a question or several questions based on the following text block.\n Text block: {text}"

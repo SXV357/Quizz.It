@@ -163,13 +163,13 @@ export default function SignUp() {
                 />
               </Grid>
               <div className = "pw-reqs" style = {{display: "grid", gridTemplateRows: "repeat(3, 1fr)", gridTemplateColumns: "repeat(2, 1fr)", margin: "0 auto", marginTop: "10px", columnGap: "15px"}}>
-                <li style = {{color: `${hasMinChars ? "rgb(0, 255, 0)" : "rgb(0, 0, 0)"}`}}>8 characters</li>
-                <li style = {{color: `${hasLowercase ? "rgb(0, 255, 0)" : "rgb(0, 0, 0)"}`}}>One lowercase letter</li>
-                <li style = {{color: `${hasUpperCase ? "rgb(0, 255, 0)" : "rgb(0, 0, 0)"}`}}>One uppercase letter</li>
-                <li style = {{color: `${hasNumber ? "rgb(0, 255, 0)" : "rgb(0, 0, 0)"}`}}>One number</li>
-                <li style = {{color: `${hasSpecial ? "rgb(0, 255, 0)" : "rgb(0, 0, 0)"}`}}>One special character</li>
+                <li style = {{color: `${hasMinChars ? "#009E60" : "#000"}`}}>8 characters</li>
+                <li style = {{color: `${hasLowercase ? "#009E60" : "#000"}`}}>One lowercase letter</li>
+                <li style = {{color: `${hasUpperCase ? "#009E60" : "#000"}`}}>One uppercase letter</li>
+                <li style = {{color: `${hasNumber ? "#009E60" : "#000"}`}}>One number</li>
+                <li style = {{color: `${hasSpecial ? "#009E60" : "#000"}`}}>One special character</li>
               </div>
-              <div className = "status" style = {{color: "rgb(255, 0, 0)", textAlign: "center"}}>{validationStatus}</div>
+              <div className = "validationStatus" style = {{color: "rgb(255, 0, 0)", textAlign: "center"}}>{validationStatus}</div>
             </Grid>
             <Button
               type="submit"
