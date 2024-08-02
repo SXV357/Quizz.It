@@ -119,7 +119,12 @@ export default function Login() {
             >
               Sign In
             </Button>
-            <Grid container>
+            <Grid container spacing={2}>
+              <Grid item xs>
+                <Link href="/" variant="body2">
+                  {"Back to Home"}
+                </Link>
+              </Grid>
               <Grid item>
                 <Link href="/sign_up" variant="body2">
                   {"Don't have an account? Sign Up"}
