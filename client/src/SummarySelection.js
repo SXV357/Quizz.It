@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import "./styles/summary.css"
 import "./styles/selection.css"
 
@@ -10,8 +10,7 @@ export default function SummarySelection() {
     const [isDisabled, setIsDisabled] = useState(false)
 
     const navigate = useNavigate();
-    const location = useLocation();
-    const username = location.state;
+    const username = sessionStorage.getItem("username")
 
     useEffect(() => {
         fetch(`http://127.0.0.1:5000/fetch_files?username=${username}`, {

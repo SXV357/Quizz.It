@@ -13,7 +13,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { InputAdornment } from '@mui/material';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {collection, query, where, getDocs, updateDoc} from "firebase/firestore"
 import { auth, db } from './firebase';
 import { updatePassword } from 'firebase/auth';
@@ -22,9 +22,6 @@ import UseAuthValidation from './hooks/UseAuthValidation';
 export default function ForgotPassword() {
   const defaultTheme = createTheme();
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const username = location.state;
 
   const [email, setEmail] = useState("")
   const [newPassword, setNewPassword] = useState("")
@@ -156,7 +153,7 @@ export default function ForgotPassword() {
               Reset Password
             </Button>
             <Grid container justifyContent= "center">
-              <Link variant="body2" onClick = {() => navigate("/app", {state: username})} style = {{cursor: "pointer"}}>
+              <Link variant="body2" onClick = {() => navigate("/app")} style = {{cursor: "pointer"}}>
                  Back to home
               </Link>
             </Grid>

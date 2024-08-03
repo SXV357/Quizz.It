@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import "./styles/answering.css"
 import "./styles/selection.css"
 
@@ -7,10 +7,9 @@ export default function QAnsweringSelection() {
 
   const [questionAnsweringFiles, setQuestionAnsweringFiles] = useState([])
   const [qaFileSelectionStatus, setQaFileSelectionStatus] = useState("")
+  const username = sessionStorage.getItem("username")
 
   const navigate = useNavigate();
-  const location = useLocation();
-  const username = location.state;
 
   useEffect(() => {
     fetch(`http://127.0.0.1:5000/fetch_files?username=${username}`, {
@@ -39,7 +38,7 @@ export default function QAnsweringSelection() {
       .then(data => {
         if (data.status === "OK") {
           setQaFileSelectionStatus("")
-          navigate("/chatbot_page", {state: username})
+          navigate("/chatbot_page")
         }
       })
   }
@@ -59,7 +58,7 @@ export default function QAnsweringSelection() {
         </form> 
         <button id = "toHomePage" type = "button" onClick = {(e) => {
           e.preventDefault();
-          navigate("/app", {state: username});
+          navigate("/app");
         }}>Go To Home Page</button>
         <div className = "status" style = {{textAlign: "center"}}>{qaFileSelectionStatus}</div>
     </div>

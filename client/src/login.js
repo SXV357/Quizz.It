@@ -41,7 +41,8 @@ export default function Login() {
       const user = userCredential.user;
 
       if (user.emailVerified) {
-        navigate("/app", {state: user.email.substring(0, email.indexOf("@"))})
+        sessionStorage.setItem("username", user.email.substring(0, email.indexOf("@")))
+        navigate("/app")
       } else {
         setValidationStatus("You need to verify your email before you can log in!");
         return;

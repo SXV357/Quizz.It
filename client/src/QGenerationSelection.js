@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import "./styles/generation.css"
@@ -10,10 +10,9 @@ export default function QGenerationSelection() {
   const [questionGenerationFiles, setQuestionGenerationFiles] = useState([])
   const [generatePDFStatus, setGeneratePDFStatus] = useState("")
   const [isDisabled, setIsDisabled] = useState(false)
+  const username = sessionStorage.getItem("username")
 
   const navigate = useNavigate();
-  const location = useLocation();
-  const username = location.state;
 
   useEffect(() => {
     fetch(`http://127.0.0.1:5000/fetch_files?username=${username}`, {

@@ -5,7 +5,7 @@ import "./styles/summary.css"
 export default function SummaryPage() {
     const location = useLocation();
     const navigate = useNavigate();
-    const {summarized_text, statistics, username} = location.state;
+    const {summarized_text, statistics} = location.state;
 
     return (
         <>
@@ -36,7 +36,7 @@ export default function SummaryPage() {
             </div>
             <button className = "toHomePage" type = "button" onClick = {(e) => {
                 e.preventDefault();
-                navigate("/app", {state: username})
+                navigate("/app")
             }}>Go to Home Page</button>
         </section>
         </>

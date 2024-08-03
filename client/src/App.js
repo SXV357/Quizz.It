@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {auth, storage} from "./firebase"
 import { signOut } from "firebase/auth";
@@ -11,15 +11,19 @@ export default function App() {
   const [generateQuestionFileStatus, setGenerateQuestionFileStatus] = useState("");
   const [askQuestionFileStatus, setAskQuestionFileStatus] = useState("");
 
-  const location = useLocation();
+  const [username, setUsername] = useState("")
   const navigate = useNavigate();
-  const username = location.state;
+
+  useEffect(() => {
+    setUsername(sessionStorage.getItem("username"))
+  }, [])
 
   async function logOut(e) {
     e.preventDefault();
     // sign user out and redirect them back to the login page
     await signOut(auth)
       .then(() => {
+        sessionStorage.removeItem("username")
         navigate("/login");
       })
       .catch(err => console.log(err));
@@ -75,9 +79,9 @@ export default function App() {
       .then(data => {
         if (data.filesExist) {
           switch (page) {
-            case "summary": navigate("/fetch_summarize_files", {state: username}); break;
-            case "questionGeneration": navigate("/fetch_questions_files", {state: username}); break;
-            case "chatbot": navigate("/fetch_ask_questions_files", {state: username}); break;
+            case "summary": navigate("/fetch_summarize_files"); break;
+            case "questionGeneration": navigate("/fetch_questions_files"); break;
+            case "chatbot": navigate("/fetch_ask_questions_files"); break;
           }
         }
         else {
@@ -97,7 +101,7 @@ export default function App() {
               <div id="navbar__logo">QuizzIt</div>
               <div className="navbar__buttons">
                   <button onClick={(e) => logOut(e)} className="navbar__button">Sign Out</button>
-                  <button onClick={() => navigate("/forgot_password", {state: username})} className="navbar__button">Forgot Password?</button>
+                  <button onClick={() => navigate("/forgot_password")} className="navbar__button">Forgot Password?</button>
               </div>
           </div>
       </nav>
