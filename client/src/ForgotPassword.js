@@ -1,6 +1,8 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState} from 'react'
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
+import Link from '@mui/material/Link';
+import Grid from '@mui/material/Grid';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
@@ -11,33 +13,24 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { InputAdornment } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {collection, query, where, getDocs, updateDoc} from "firebase/firestore"
 import { auth, db } from './firebase';
 import { updatePassword } from 'firebase/auth';
+import UseAuthValidation from './hooks/UseAuthValidation';
 
 export default function ForgotPassword() {
   const defaultTheme = createTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const username = location.state;
 
   const [email, setEmail] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [validationStatus, setValidationStatus] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
 
-  const [hasMinChars, setHasMinChars] = useState(false)
-  const [hasLowercase, setHasLowerCase] = useState(false)
-  const [hasUpperCase, setHasUpperCase] = useState(false)
-  const [hasSpecial, setHasSpecial] = useState(false)
-  const [hasNumber, setHasNumber] = useState(false)
-
-  useEffect(() => {
-    setHasNumber(/\d/.test(newPassword))
-    setHasMinChars(newPassword.length >= 8)
-    setHasLowerCase(/[a-z]/.test(newPassword))
-    setHasUpperCase(/[A-Z]/.test(newPassword))
-    setHasSpecial(/[!@#$%^&*()\-+={}[\]:;"'<>,.?\/|\\]/.test(newPassword))
-  }, [newPassword])
+  const {isPasswordValid, showPassword, renderDisplay, togglePwDisplay} = UseAuthValidation(newPassword)
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -51,24 +44,8 @@ export default function ForgotPassword() {
           return;
         } else {
           // password checks
-          if (!hasMinChars) {
-            setValidationStatus("The password needs to be atleast 8 characters long")
-            return;
-          }
-          if (!hasLowercase) {
-            setValidationStatus("The password needs to have atleast one lowercase character");
-            return;
-          }
-          if (!hasUpperCase) {
-            setValidationStatus("The password needs to have atleast one uppercase character");
-            return;
-          }
-          if (!hasNumber) {
-            setValidationStatus("The password needs to have atleast one digit");
-            return;
-          }
-          if (!hasSpecial) {
-            setValidationStatus("The password needs to have atleast one special character");
+          if (!isPasswordValid) {
+            setValidationStatus("Invalid password. Please try again!");
             return;
           }
 
@@ -158,18 +135,17 @@ export default function ForgotPassword() {
               InputProps = {{
                 endAdornment: (
                   <InputAdornment position = "end">
-                    <div onClick = {() => setShowPassword((prev) => !prev)}>{!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}</div>
+                    <div 
+                      onClick = {togglePwDisplay}
+                      style = {{cursor: "pointer", display: "flex"}}
+                    >
+                      {!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </div>
                   </InputAdornment>
                 )
               }}
             />
-            <div className = "pw-reqs" style = {{display: "grid", gridTemplateRows: "repeat(3, 1fr)", gridTemplateColumns: "repeat(2, 1fr)", margin: "0 auto", marginTop: "10px", columnGap: "15px"}}>
-                <li style = {{color: `${hasMinChars ? "#009E60" : "#000"}`}}>8 characters</li>
-                <li style = {{color: `${hasLowercase ? "#009E60" : "#000"}`}}>One lowercase letter</li>
-                <li style = {{color: `${hasUpperCase ? "#009E60" : "#000"}`}}>One uppercase letter</li>
-                <li style = {{color: `${hasNumber ? "#009E60" : "#000"}`}}>One number</li>
-                <li style = {{color: `${hasSpecial ? "#009E60" : "#000"}`}}>One special character</li>
-              </div>
+            {renderDisplay()}
             <div className = "validationStatus" style = {{color: "rgb(255, 0, 0)", textAlign: "center", marginTop: "20px"}}>{validationStatus}</div>
             <Button
               type="submit"
@@ -179,6 +155,11 @@ export default function ForgotPassword() {
             >
               Reset Password
             </Button>
+            <Grid container justifyContent= "center">
+              <Link variant="body2" onClick = {() => navigate("/app", {state: username})} style = {{cursor: "pointer"}}>
+                 Back to home
+              </Link>
+            </Grid>
           </Box>
         </Box>
       </Container>

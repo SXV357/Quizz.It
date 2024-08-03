@@ -20,7 +20,6 @@ export default function App() {
     // sign user out and redirect them back to the login page
     await signOut(auth)
       .then(() => {
-        console.log("Signed out successfully");
         navigate("/login");
       })
       .catch(err => console.log(err));
@@ -35,20 +34,22 @@ export default function App() {
       })
   }
 
-  // will make a post request to the backend sendint the file and then retrieve a pdf version of the file to be uploaded to firebase storage
   const uploadFile = async (e) => {
     e.preventDefault();
+
     setSummaryFileStatus("");
     setGenerateQuestionFileStatus("");
     setAskQuestionFileStatus("");
+
     let file_input = document.querySelector("#upload");
     let formData = new FormData();
+
     if (!(file_input.files[0] === undefined)) {
       let file = file_input.files[0];
-      // in case the file upload takes a long time
       setFileUploadStatus("Upload in progress...");
       formData.append("upload", file);
-      fetch(`http://127.0.0.1:5000/upload_file?username=${username}`, {
+
+      await fetch(`http://127.0.0.1:5000/upload_file?username=${username}`, {
           method: "POST",
           body: formData
       })
@@ -56,13 +57,12 @@ export default function App() {
         .then(data => {
           if (data.status === "PDF OK") {
             uploadFileToStorage(file.name, file);
-            console.log("File uploaded successfully")
           } else {
             setFileUploadStatus(data.status);
           }
         })
     } else {
-      setFileUploadStatus("Make sure you have provided a file");
+      setFileUploadStatus("Make sure you have selected a file!");
     }
   }
 
@@ -97,7 +97,7 @@ export default function App() {
               <div id="navbar__logo">QuizzIt</div>
               <div className="navbar__buttons">
                   <button onClick={(e) => logOut(e)} className="navbar__button">Sign Out</button>
-                  <button onClick={() => navigate("/forgot_password")} className="navbar__button">Forgot Password?</button>
+                  <button onClick={() => navigate("/forgot_password", {state: username})} className="navbar__button">Forgot Password?</button>
               </div>
           </div>
       </nav>

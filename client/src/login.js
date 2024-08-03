@@ -105,7 +105,12 @@ export default function Login() {
               InputProps = {{
                 endAdornment: (
                   <InputAdornment position = "end">
-                    <div onClick = {() => setShowPassword((prev) => !prev)}>{!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}</div>
+                    <div 
+                      onClick = {() => setShowPassword((prev) => !prev)}
+                      style = {{cursor: "pointer", display: "flex"}}
+                    >
+                      {!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </div>
                   </InputAdornment>
                 )
               }}

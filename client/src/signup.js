@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState} from 'react'
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -17,6 +17,7 @@ import {addDoc, collection} from "firebase/firestore"
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { InputAdornment } from '@mui/material';
+import UseAuthValidation from "./hooks/UseAuthValidation"
 
 export default function SignUp() {
   const defaultTheme = createTheme();
@@ -25,21 +26,8 @@ export default function SignUp() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [validationStatus, setValidationStatus] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
 
-  const [hasMinChars, setHasMinChars] = useState(false)
-  const [hasLowercase, setHasLowerCase] = useState(false)
-  const [hasUpperCase, setHasUpperCase] = useState(false)
-  const [hasSpecial, setHasSpecial] = useState(false)
-  const [hasNumber, setHasNumber] = useState(false)
-
-  useEffect(() => {
-    setHasNumber(/\d/.test(password))
-    setHasMinChars(password.length >= 8)
-    setHasLowerCase(/[a-z]/.test(password))
-    setHasUpperCase(/[A-Z]/.test(password))
-    setHasSpecial(/[!@#$%^&*()\-+={}[\]:;"'<>,.?\/|\\]/.test(password))
-  }, [password])
+  const {isPasswordValid, showPassword, renderDisplay, togglePwDisplay} = UseAuthValidation(password)
 
   function validateEmail(email) {
     return fetch(`http://127.0.0.1:5000/check-email-validity?email=${email}`, {
@@ -65,24 +53,8 @@ export default function SignUp() {
       }
 
       // password checks
-      if (!hasMinChars) {
-        setValidationStatus("The password needs to be atleast 8 characters long")
-        return;
-      }
-      if (!hasLowercase) {
-        setValidationStatus("The password needs to have atleast one lowercase character");
-        return;
-      }
-      if (!hasUpperCase) {
-        setValidationStatus("The password needs to have atleast one uppercase character");
-        return;
-      }
-      if (!hasNumber) {
-        setValidationStatus("The password needs to have atleast one digit");
-        return;
-      }
-      if (!hasSpecial) {
-        setValidationStatus("The password needs to have atleast one special character");
+      if (!isPasswordValid) {
+        setValidationStatus("Invalid password. Please try again!")
         return;
       }
 
@@ -156,19 +128,18 @@ export default function SignUp() {
                   InputProps = {{
                     endAdornment: (
                       <InputAdornment position = "end">
-                        <div onClick = {() => setShowPassword((prev) => !prev)}>{!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}</div>
-                      </InputAdornment>
+                        <div 
+                          onClick = {togglePwDisplay}
+                          style = {{cursor: "pointer", display: "flex"}}
+                        >
+                          {!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                        </div>
+                  </InputAdornment>
                     )
                   }}
                 />
               </Grid>
-              <div className = "pw-reqs" style = {{display: "grid", gridTemplateRows: "repeat(3, 1fr)", gridTemplateColumns: "repeat(2, 1fr)", margin: "0 auto", marginTop: "10px", columnGap: "15px"}}>
-                <li style = {{color: `${hasMinChars ? "#009E60" : "#000"}`}}>8 characters</li>
-                <li style = {{color: `${hasLowercase ? "#009E60" : "#000"}`}}>One lowercase letter</li>
-                <li style = {{color: `${hasUpperCase ? "#009E60" : "#000"}`}}>One uppercase letter</li>
-                <li style = {{color: `${hasNumber ? "#009E60" : "#000"}`}}>One number</li>
-                <li style = {{color: `${hasSpecial ? "#009E60" : "#000"}`}}>One special character</li>
-              </div>
+              {renderDisplay()}
               <div className = "validationStatus" style = {{color: "rgb(255, 0, 0)", textAlign: "center"}}>{validationStatus}</div>
             </Grid>
             <Button
@@ -182,7 +153,7 @@ export default function SignUp() {
             <Grid container spacing={2}>
               <Grid item xs>
                 <Link href="/" variant="body2">
-                  {"Back to Home"}
+                  {"Back to Landing"}
                 </Link>
               </Grid>
               <Grid item>
