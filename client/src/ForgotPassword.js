@@ -16,8 +16,9 @@ import { InputAdornment } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {collection, query, where, getDocs, updateDoc} from "firebase/firestore"
 import { auth, db } from './firebase';
-import { updatePassword } from 'firebase/auth';
+import { updatePassword, signOut } from 'firebase/auth';
 import UseAuthValidation from './hooks/UseAuthValidation';
+import Loading from './Loading';
 
 export default function ForgotPassword() {
   const defaultTheme = createTheme();
@@ -26,6 +27,7 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [validationStatus, setValidationStatus] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   const {isPasswordValid, showPassword, renderDisplay, togglePwDisplay} = UseAuthValidation(newPassword)
 
@@ -66,10 +68,18 @@ export default function ForgotPassword() {
               await updatePassword(auth.currentUser, newPassword)
                 .then(() => {
                   const ref = doc.ref;
-                  updateDoc(ref, {password: newPassword});
-                  setValidationStatus("Password updated successfully");
-                  setValidationStatus("Signing you out and redirecting to the login page...");
-                  setTimeout(() => navigate("/login"), 1500)
+                  updateDoc(ref, {password: newPassword})
+                    .then(async () => {
+                      await signOut(auth)
+                        .then(() => {
+                          sessionStorage.removeItem("username")
+                          setIsLoading(true);
+                          setTimeout(() => {
+                            navigate("/login");
+                            setIsLoading(false);
+                          }, 2000)
+                        })
+                    })
                 })
                 .catch((e) => {
                   setValidationStatus("Internal server error when updating password");
@@ -87,79 +97,83 @@ export default function ForgotPassword() {
   }
 
   return (
-    <ThemeProvider theme={defaultTheme}>
-      <Container component="main" maxWidth="xs">
-        <CssBaseline />
-        <Box
-          sx={{
-            marginTop: 8,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            minWidth: '400px'
-          }}
-        >
-          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-            <LockOutlinedIcon />
-          </Avatar>
-          <Typography component="h1" variant="h5">
-            Forgot Password
-          </Typography>
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: '100%' }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              autoFocus
-              onChange = {(e) => setEmail(e.target.value)}
-              value = {email}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="newPassword"
-              label="New Password"
-              type= {showPassword ? "text" : "password"}
-              id="newPassword"
-              autoComplete="current-password"
-              onChange = {(e) => setNewPassword(e.target.value)}
-              value = {newPassword}
-              InputProps = {{
-                endAdornment: (
-                  <InputAdornment position = "end">
-                    <div 
-                      onClick = {togglePwDisplay}
-                      style = {{cursor: "pointer", display: "flex"}}
-                    >
-                      {!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                    </div>
-                  </InputAdornment>
-                )
-              }}
-            />
-            {renderDisplay()}
-            <div className = "validationStatus" style = {{color: "rgb(255, 0, 0)", textAlign: "center", marginTop: "20px"}}>{validationStatus}</div>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
-              Reset Password
-            </Button>
-            <Grid container justifyContent= "center">
-              <Link variant="body2" onClick = {() => navigate("/app")} style = {{cursor: "pointer"}}>
-                 Back to home
-              </Link>
-            </Grid>
+    <>
+      {isLoading ? <Loading action = {"Password reset successful. Signing you out and redirecting you to the login page..."}/>: (
+        <ThemeProvider theme={defaultTheme}>
+        <Container component="main" maxWidth="xs">
+          <CssBaseline />
+          <Box
+            sx={{
+              marginTop: 8,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              minWidth: '400px'
+            }}
+          >
+            <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+              <LockOutlinedIcon />
+            </Avatar>
+            <Typography component="h1" variant="h5">
+              Forgot Password
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: '100%' }}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="email"
+                label="Email Address"
+                name="email"
+                autoComplete="email"
+                autoFocus
+                onChange = {(e) => setEmail(e.target.value)}
+                value = {email}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="newPassword"
+                label="New Password"
+                type= {showPassword ? "text" : "password"}
+                id="newPassword"
+                autoComplete="current-password"
+                onChange = {(e) => setNewPassword(e.target.value)}
+                value = {newPassword}
+                InputProps = {{
+                  endAdornment: (
+                    <InputAdornment position = "end">
+                      <div 
+                        onClick = {togglePwDisplay}
+                        style = {{cursor: "pointer", display: "flex"}}
+                      >
+                        {!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </div>
+                    </InputAdornment>
+                  )
+                }}
+              />
+              {renderDisplay()}
+              <div className = "validationStatus" style = {{color: "rgb(255, 0, 0)", textAlign: "center", marginTop: "20px"}}>{validationStatus}</div>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+              >
+                Reset Password
+              </Button>
+              <Grid container justifyContent= "center">
+                <Link variant="body2" onClick = {() => navigate("/app")} style = {{cursor: "pointer"}}>
+                   Back to home
+                </Link>
+              </Grid>
+            </Box>
           </Box>
-        </Box>
-      </Container>
-    </ThemeProvider>
+        </Container>
+      </ThemeProvider>
+      )}
+    </>
   )
 }

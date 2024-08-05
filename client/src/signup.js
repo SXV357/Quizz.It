@@ -18,6 +18,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { InputAdornment } from '@mui/material';
 import UseAuthValidation from "./hooks/UseAuthValidation"
+import Loading from './Loading';
 
 export default function SignUp() {
   const defaultTheme = createTheme();
@@ -26,6 +27,7 @@ export default function SignUp() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [validationStatus, setValidationStatus] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   const {isPasswordValid, showPassword, renderDisplay, togglePwDisplay} = UseAuthValidation(password)
 
@@ -58,6 +60,8 @@ export default function SignUp() {
         return;
       }
 
+      setValidationStatus("Loading...")
+
       await createUserWithEmailAndPassword(auth, email, password);
       await addDoc(collection(db, "users"), {
         "email": email,
@@ -65,9 +69,12 @@ export default function SignUp() {
       })
       await sendEmailVerification(auth.currentUser)
         .then(() => {
-          setValidationStatus("Email verification link sent successfully");
-          setValidationStatus("Redirecting you to the login page...");
-          setTimeout(() => navigate("/login"), 3500)
+          setValidationStatus("")
+          setIsLoading(true);
+          setTimeout(() => {
+            navigate("/login");
+            setIsLoading(false);
+          }, 2000)
         })
         .catch(() => {
           setValidationStatus("There was an error when sending the email verification link. Please try again!");
@@ -83,88 +90,93 @@ export default function SignUp() {
   }
 
   return (
-    <ThemeProvider theme={defaultTheme}>
-      <Container component="main" maxWidth="xs">
-        <CssBaseline />
-        <Box
-          sx={{
-            marginTop: 8,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-            <LockOutlinedIcon />
-          </Avatar>
-          <Typography component="h1" variant="h5">
-            Sign up
-          </Typography>
-          <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="email"
-                  label="Email Address"
-                  name="email"
-                  autoComplete="email"
-                  onChange = {(e) => setEmail(e.target.value)}
-                  value = {email}
-                />
+    <>
+      {isLoading ? <Loading action = {"Email verification link sent successfully. Redirecting you to the login page..."}/> : (
+        <ThemeProvider theme={defaultTheme}>
+        <Container component="main" maxWidth="xs">
+          <CssBaseline />
+          <Box
+            sx={{
+              marginTop: 8,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+              <LockOutlinedIcon />
+            </Avatar>
+            <Typography component="h1" variant="h5">
+              Sign up
+            </Typography>
+            <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    id="email"
+                    label="Email Address"
+                    name="email"
+                    autoComplete="email"
+                    onChange = {(e) => setEmail(e.target.value)}
+                    value = {email}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    name="password"
+                    label="Password"
+                    type= {showPassword ? "text" : "password"}
+                    id="password"
+                    autoComplete="new-password"
+                    onChange = {(e) => setPassword(e.target.value)}
+                    value = {password}
+                    InputProps = {{
+                      endAdornment: (
+                        <InputAdornment position = "end">
+                          <div 
+                            onClick = {togglePwDisplay}
+                            style = {{cursor: "pointer", display: "flex"}}
+                          >
+                            {!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                          </div>
+                    </InputAdornment>
+                      )
+                    }}
+                  />
+                </Grid>
+                {renderDisplay()}
+                <div className = "validationStatus" style = {{color: "rgb(255, 0, 0)", textAlign: "center"}}>{validationStatus}</div>
               </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  name="password"
-                  label="Password"
-                  type= {showPassword ? "text" : "password"}
-                  id="password"
-                  autoComplete="new-password"
-                  onChange = {(e) => setPassword(e.target.value)}
-                  value = {password}
-                  InputProps = {{
-                    endAdornment: (
-                      <InputAdornment position = "end">
-                        <div 
-                          onClick = {togglePwDisplay}
-                          style = {{cursor: "pointer", display: "flex"}}
-                        >
-                          {!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                        </div>
-                  </InputAdornment>
-                    )
-                  }}
-                />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+              >
+                Sign Up
+              </Button>
+              <Grid container spacing={2}>
+                <Grid item xs>
+                  <Link href="/" variant="body2">
+                    {"Back to Landing"}
+                  </Link>
+                </Grid>
+                <Grid item>
+                  <Link href="/login" variant="body2">
+                    Already have an account? Sign in
+                  </Link>
+                </Grid>
               </Grid>
-              {renderDisplay()}
-              <div className = "validationStatus" style = {{color: "rgb(255, 0, 0)", textAlign: "center"}}>{validationStatus}</div>
-            </Grid>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
-              Sign Up
-            </Button>
-            <Grid container spacing={2}>
-              <Grid item xs>
-                <Link href="/" variant="body2">
-                  {"Back to Landing"}
-                </Link>
-              </Grid>
-              <Grid item>
-                <Link href="/login" variant="body2">
-                  Already have an account? Sign in
-                </Link>
-              </Grid>
-            </Grid>
+            </Box>
           </Box>
-        </Box>
-      </Container>
-    </ThemeProvider>
-  )
+        </Container>
+      </ThemeProvider>
+  
+      )}
+    </>
+      )
 }

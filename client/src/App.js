@@ -1,8 +1,9 @@
 import React, {useState, useEffect} from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {auth, storage} from "./firebase"
 import { signOut } from "firebase/auth";
 import {ref, uploadBytes} from "firebase/storage"
+import Loading from "./Loading";
 
 export default function App() {
 
@@ -12,6 +13,8 @@ export default function App() {
   const [askQuestionFileStatus, setAskQuestionFileStatus] = useState("");
 
   const [username, setUsername] = useState("")
+  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,7 +27,11 @@ export default function App() {
     await signOut(auth)
       .then(() => {
         sessionStorage.removeItem("username")
-        navigate("/login");
+        setIsLoading(true);
+        setTimeout(() => {
+          navigate("/login");
+          setIsLoading(false);
+        }, 2000)
       })
       .catch(err => console.log(err));
   }
@@ -96,60 +103,64 @@ export default function App() {
 
   return (
     <>
-      <nav className="navbar">
-          <div className="navbar__container">
-              <div id="navbar__logo">QuizzIt</div>
-              <div className="navbar__buttons">
-                  <button onClick={(e) => logOut(e)} className="navbar__button">Sign Out</button>
-                  <button onClick={() => navigate("/forgot_password")} className="navbar__button">Forgot Password?</button>
-              </div>
+    {isLoading ? <Loading action = {"Sign out successful. Redirecting you to the login page..."}/> : (
+      <>
+        <nav className="navbar">
+      <div className="navbar__container">
+          <div id="navbar__logo">QuizzIt</div>
+          <div className="navbar__buttons">
+              <button onClick={(e) => logOut(e)} className="navbar__button">Sign Out</button>
+              <button onClick={() => navigate("/forgot_password")} className="navbar__button">Forgot Password?</button>
           </div>
-      </nav>
-
-      <div className="intro" id="home">
-        <div className="intro__container">
-          <h1 className="intro__heading">Welcome to <span>QuizzIt</span> {username}</h1>
-          <p className="intro__description">Please Upload Your File Below</p>
-        </div>
-        <section className="intro__section">
-          <form id="uploadForm" method="post" encType="multipart/form-data" action="">
-            <input type="file" id="upload" name="upload" className="select__button" />
-            <br />
-            <input type="submit" value="Upload" id="uploadButton" className="upload__button" onClick = {(e) => uploadFile(e)}/>
-          </form>
-          <div className="file_upload_status">{fileUploadStatus}</div>
-        </section>
       </div>
+  </nav>
 
-      <div className="options" id="options">
-        <h1>Choose Your Direction</h1>
-        <div className="options__wrapper">
-            <div className="options__card">
-                <h2>Document too long?</h2>
-                <p>We got your back!</p>
-                <div className="summary_button">
-                    <button onClick={(e) => determine_route(e, "summary")}>Generate Summary</button>
-                </div>
-                <div className="summaryFilesStatus">{summaryFileStatus}</div>
+  <div className="intro" id="home">
+    <div className="intro__container">
+      <h1 className="intro__heading">Welcome to <span>QuizzIt</span> {username}</h1>
+      <p className="intro__description">Please Upload Your File Below</p>
+    </div>
+    <section className="intro__section">
+      <form id="uploadForm" method="post" encType="multipart/form-data" action="">
+        <input type="file" id="upload" name="upload" className="select__button" />
+        <br />
+        <input type="submit" value="Upload" id="uploadButton" className="upload__button" onClick = {(e) => uploadFile(e)}/>
+      </form>
+      <div className="file_upload_status">{fileUploadStatus}</div>
+    </section>
+  </div>
+
+  <div className="options" id="options">
+    <h1>Choose Your Direction</h1>
+    <div className="options__wrapper">
+        <div className="options__card">
+            <h2>Document too long?</h2>
+            <p>We got your back!</p>
+            <div className="summary_button">
+                <button onClick={(e) => determine_route(e, "summary")}>Generate Summary</button>
             </div>
-            <div className="options__card">
-                <h2>Studying for a test?</h2>
-                <p>We can quiz you!</p>
-                <div className="questions_button">
-                    <button onClick={(e) => determine_route(e, "questionGeneration")}>Generate Test Questions</button>
-                </div>
-                <div className="generateQuestionFilesStatus">{generateQuestionFileStatus}</div>
+            <div className="summaryFilesStatus">{summaryFileStatus}</div>
+        </div>
+        <div className="options__card">
+            <h2>Studying for a test?</h2>
+            <p>We can quiz you!</p>
+            <div className="questions_button">
+                <button onClick={(e) => determine_route(e, "questionGeneration")}>Generate Test Questions</button>
             </div>
-            <div className="options__card">
-                <h2>Have questions about the document?</h2>
-                <p>We can help you with that</p>
-                <div className="ask_question_button">
-                    <button onClick={(e) => determine_route(e, "chatbot")}>Ask a Question</button>
-                </div>
-                <div className="askQuestionFilesStatus">{askQuestionFileStatus}</div>
+            <div className="generateQuestionFilesStatus">{generateQuestionFileStatus}</div>
+        </div>
+        <div className="options__card">
+            <h2>Have questions about the document?</h2>
+            <p>We can help you with that</p>
+            <div className="ask_question_button">
+                <button onClick={(e) => determine_route(e, "chatbot")}>Ask a Question</button>
             </div>
+            <div className="askQuestionFilesStatus">{askQuestionFileStatus}</div>
         </div>
     </div>
+</div>
+      </>
+    )}
     </>
   );
 }

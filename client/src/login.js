@@ -16,6 +16,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { InputAdornment } from '@mui/material';
+import Loading from './Loading';
 
 export default function Login() {
   const defaultTheme = createTheme();
@@ -25,6 +26,7 @@ export default function Login() {
   const [password, setPassword] = useState("")
   const [validationStatus, setValidationStatus] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -42,7 +44,11 @@ export default function Login() {
 
       if (user.emailVerified) {
         sessionStorage.setItem("username", user.email.substring(0, email.indexOf("@")))
-        navigate("/app")
+        setLoading(true);
+        setTimeout(() => {
+          navigate("/app");
+          setLoading(false);
+        }, 2000);
       } else {
         setValidationStatus("You need to verify your email before you can log in!");
         return;
@@ -62,84 +68,88 @@ export default function Login() {
   }
 
   return (
-    <ThemeProvider theme={defaultTheme}>
-      <Container component="main" maxWidth="xs">
-        <CssBaseline />
-        <Box
-          sx={{
-            marginTop: 8,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-            <LockOutlinedIcon />
-          </Avatar>
-          <Typography component="h1" variant="h5">
-            Sign in
-          </Typography>
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              autoFocus
-              onChange = {(e) => setEmail(e.target.value)}
-              value = {email}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type= {showPassword ? "text" : "password"}
-              id="password"
-              autoComplete="current-password"
-              onChange = {(e) => setPassword(e.target.value)}
-              value = {password}
-              InputProps = {{
-                endAdornment: (
-                  <InputAdornment position = "end">
-                    <div 
-                      onClick = {() => setShowPassword((prev) => !prev)}
-                      style = {{cursor: "pointer", display: "flex"}}
-                    >
-                      {!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                    </div>
-                  </InputAdornment>
-                )
-              }}
-            />
-            <div className = "validationStatus" style = {{color: "rgb(255, 0, 0)", textAlign: "center"}}>{validationStatus}</div>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
-              Sign In
-            </Button>
-            <Grid container spacing={2}>
-              <Grid item xs>
-                <Link href="/" variant="body2">
-                  {"Back to Home"}
-                </Link>
+    <>
+      {loading ? <Loading action = {"Sign in successful. Redirecting you to the application..."}/> : (
+        <ThemeProvider theme={defaultTheme}>
+        <Container component="main" maxWidth="xs">
+          <CssBaseline />
+          <Box
+            sx={{
+              marginTop: 8,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+              <LockOutlinedIcon />
+            </Avatar>
+            <Typography component="h1" variant="h5">
+              Sign in
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="email"
+                label="Email Address"
+                name="email"
+                autoComplete="email"
+                autoFocus
+                onChange = {(e) => setEmail(e.target.value)}
+                value = {email}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type= {showPassword ? "text" : "password"}
+                id="password"
+                autoComplete="current-password"
+                onChange = {(e) => setPassword(e.target.value)}
+                value = {password}
+                InputProps = {{
+                  endAdornment: (
+                    <InputAdornment position = "end">
+                      <div 
+                        onClick = {() => setShowPassword((prev) => !prev)}
+                        style = {{cursor: "pointer", display: "flex"}}
+                      >
+                        {!showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </div>
+                    </InputAdornment>
+                  )
+                }}
+              />
+              <div className = "validationStatus" style = {{color: "rgb(255, 0, 0)", textAlign: "center"}}>{validationStatus}</div>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+              >
+                Sign In
+              </Button>
+              <Grid container spacing={2}>
+                <Grid item xs>
+                  <Link href="/" variant="body2">
+                    {"Back to Home"}
+                  </Link>
+                </Grid>
+                <Grid item>
+                  <Link href="/sign_up" variant="body2">
+                    {"Don't have an account? Sign Up"}
+                  </Link>
+                </Grid>
               </Grid>
-              <Grid item>
-                <Link href="/sign_up" variant="body2">
-                  {"Don't have an account? Sign Up"}
-                </Link>
-              </Grid>
-            </Grid>
+            </Box>
           </Box>
-        </Box>
-      </Container>
-    </ThemeProvider>
+        </Container>
+      </ThemeProvider>
+      )}
+    </>
   )
 }

@@ -21,7 +21,7 @@ export default function UseAuthValidation(password) {
         setHasUpperCase(/[A-Z]/.test(password))
         setHasSpecial(/[!@#$%^&*()\-+={}[\]:;"'<>,.?\/|\\]/.test(password))
         setIsPasswordValid(hasMinChars && hasLowercase && hasUpperCase && hasSpecial && hasNumber)
-    }, [password])
+    }, [password, hasMinChars, hasLowercase, hasUpperCase, hasSpecial, hasNumber])
 
     const pwDisplayStyles = {
         display: "grid", 
