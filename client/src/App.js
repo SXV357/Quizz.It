@@ -84,19 +84,16 @@ export default function App() {
     })
       .then(res => res.json())
       .then(data => {
-        if (data.filesExist) {
-          switch (page) {
-            case "summary": navigate("/fetch_summarize_files"); break;
-            case "questionGeneration": navigate("/fetch_questions_files"); break;
-            case "chatbot": navigate("/fetch_ask_questions_files"); break;
-          }
-        }
-        else {
-          switch (page) {
-            case "summary": setSummaryFileStatus("You haven't uploaded any files yet!"); break;
-            case "questionGeneration": setGenerateQuestionFileStatus("You haven't uploaded any files yet!"); break;
-            case "chatbot": setAskQuestionFileStatus("You haven't uploaded any files yet!"); break;
-          }
+        let status = data.filesExist;
+        let defaultMessage = "You haven't uploaded any files yet!";
+        if (page === "summary") {
+          status ? navigate("/fetch_summarize_files") : setSummaryFileStatus(defaultMessage);
+        } else if (page === "questionGeneration") {
+          status ? navigate("/fetch_questions_files"): setGenerateQuestionFileStatus(defaultMessage);
+        } else if (page === "chatbot") {
+          status ? navigate("/fetch_ask_questions_files"): setAskQuestionFileStatus(defaultMessage);
+        } else {
+          throw new Error("Invalid page provided!");
         }
       })
   }

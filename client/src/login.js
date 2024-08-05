@@ -63,6 +63,9 @@ export default function Login() {
         case "auth/invalid-credential": 
           setValidationStatus("The credentials you have entered are either non-existent or wrong. Please try again!"); 
           break;
+        default:
+          setValidationStatus("An unknown error occurred when logging in. Please try again!");
+          break;
       }
     }
   }
