@@ -1,48 +1,47 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {auth, storage} from "./firebase"
+import { auth, storage } from "./firebase";
 import { signOut } from "firebase/auth";
-import {ref, uploadBytes} from "firebase/storage"
+import { ref, uploadBytes } from "firebase/storage";
 import Loading from "./Loading";
 
 export default function App() {
-
   const [fileUploadStatus, setFileUploadStatus] = useState("");
   const [summaryFileStatus, setSummaryFileStatus] = useState("");
-  const [generateQuestionFileStatus, setGenerateQuestionFileStatus] = useState("");
+  const [generateQuestionFileStatus, setGenerateQuestionFileStatus] =
+    useState("");
   const [askQuestionFileStatus, setAskQuestionFileStatus] = useState("");
 
-  const [username, setUsername] = useState("")
+  const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    setUsername(sessionStorage.getItem("username"))
-  }, [])
+    setUsername(sessionStorage.getItem("username"));
+  }, []);
 
   async function logOut(e) {
     e.preventDefault();
     // sign user out and redirect them back to the login page
     await signOut(auth)
       .then(() => {
-        sessionStorage.removeItem("username")
+        sessionStorage.removeItem("username");
         setIsLoading(true);
         setTimeout(() => {
           navigate("/login");
           setIsLoading(false);
-        }, 2000)
+        }, 2000);
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.log(err));
   }
 
   async function uploadFileToStorage(fileName, uploadFile) {
-    const fileStorage = ref(storage, `${username}/${fileName}`)
-    await uploadBytes(fileStorage, uploadFile)
-      .then((snapshot) => {
-        console.log(snapshot);
-        setFileUploadStatus("File uploaded successfully");
-      })
+    const fileStorage = ref(storage, `${username}/${fileName}`);
+    await uploadBytes(fileStorage, uploadFile).then((snapshot) => {
+      console.log(snapshot);
+      setFileUploadStatus("File uploaded successfully");
+    });
   }
 
   const uploadFile = async (e) => {
@@ -61,103 +60,152 @@ export default function App() {
       formData.append("upload", file);
 
       await fetch(`http://127.0.0.1:5000/upload_file?username=${username}`, {
-          method: "POST",
-          body: formData
+        method: "POST",
+        body: formData,
       })
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           if (data.status === "PDF OK") {
             uploadFileToStorage(file.name, file);
           } else {
             setFileUploadStatus(data.status);
           }
-        })
+        });
     } else {
       setFileUploadStatus("Make sure you have selected a file!");
     }
-  }
+  };
 
   const determine_route = (e, page) => {
     e.preventDefault();
     fetch(`http://127.0.0.1:5000/check_files?username=${username}`, {
-        method: "GET"
+      method: "GET",
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         let status = data.filesExist;
         let defaultMessage = "You haven't uploaded any files yet!";
         if (page === "summary") {
-          status ? navigate("/fetch_summarize_files") : setSummaryFileStatus(defaultMessage);
+          status
+            ? navigate("/fetch_summarize_files")
+            : setSummaryFileStatus(defaultMessage);
         } else if (page === "questionGeneration") {
-          status ? navigate("/fetch_questions_files"): setGenerateQuestionFileStatus(defaultMessage);
+          status
+            ? navigate("/fetch_questions_files")
+            : setGenerateQuestionFileStatus(defaultMessage);
         } else if (page === "chatbot") {
-          status ? navigate("/fetch_ask_questions_files"): setAskQuestionFileStatus(defaultMessage);
+          status
+            ? navigate("/fetch_ask_questions_files")
+            : setAskQuestionFileStatus(defaultMessage);
         } else {
           throw new Error("Invalid page provided!");
         }
-      })
-  }
+      });
+  };
 
   return (
     <>
-    {isLoading ? <Loading action = {"Sign out successful. Redirecting you to the login page..."}/> : (
-      <>
-        <nav className="navbar">
-      <div className="navbar__container">
-          <div id="navbar__logo">QuizzIt</div>
-          <div className="navbar__buttons">
-              <button onClick={(e) => logOut(e)} className="navbar__button">Sign Out</button>
-              <button onClick={() => navigate("/forgot_password")} className="navbar__button">Forgot Password?</button>
+      {isLoading ? (
+        <Loading
+          action={"Sign out successful. Redirecting you to the login page..."}
+        />
+      ) : (
+        <>
+          <nav className="navbar">
+            <div className="navbar__container">
+              <div id="navbar__logo">QuizzIt</div>
+              <div className="navbar__buttons">
+                <button onClick={(e) => logOut(e)} className="navbar__button">
+                  Sign Out
+                </button>
+                <button
+                  onClick={() => navigate("/forgot_password")}
+                  className="navbar__button"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+            </div>
+          </nav>
+
+          <div className="intro" id="home">
+            <div className="intro__container">
+              <h1 className="intro__heading">
+                Welcome to <span>QuizzIt</span> {username}
+              </h1>
+              <p className="intro__description">
+                Please Upload Your File Below
+              </p>
+            </div>
+            <section className="intro__section">
+              <form
+                id="uploadForm"
+                method="post"
+                encType="multipart/form-data"
+                action=""
+              >
+                <input
+                  type="file"
+                  id="upload"
+                  name="upload"
+                  className="select__button"
+                />
+                <br />
+                <input
+                  type="submit"
+                  value="Upload"
+                  id="uploadButton"
+                  className="upload__button"
+                  onClick={(e) => uploadFile(e)}
+                />
+              </form>
+              <div className="file_upload_status">{fileUploadStatus}</div>
+            </section>
           </div>
-      </div>
-  </nav>
 
-  <div className="intro" id="home">
-    <div className="intro__container">
-      <h1 className="intro__heading">Welcome to <span>QuizzIt</span> {username}</h1>
-      <p className="intro__description">Please Upload Your File Below</p>
-    </div>
-    <section className="intro__section">
-      <form id="uploadForm" method="post" encType="multipart/form-data" action="">
-        <input type="file" id="upload" name="upload" className="select__button" />
-        <br />
-        <input type="submit" value="Upload" id="uploadButton" className="upload__button" onClick = {(e) => uploadFile(e)}/>
-      </form>
-      <div className="file_upload_status">{fileUploadStatus}</div>
-    </section>
-  </div>
-
-  <div className="options" id="options">
-    <h1>Choose Your Direction</h1>
-    <div className="options__wrapper">
-        <div className="options__card">
-            <h2>Document too long?</h2>
-            <p>We got your back!</p>
-            <div className="summary_button">
-                <button onClick={(e) => determine_route(e, "summary")}>Generate Summary</button>
+          <div className="options" id="options">
+            <h1>Choose Your Direction</h1>
+            <div className="options__wrapper">
+              <div className="options__card">
+                <h2>Document too long?</h2>
+                <p>We got your back!</p>
+                <div className="summary_button">
+                  <button onClick={(e) => determine_route(e, "summary")}>
+                    Generate Summary
+                  </button>
+                </div>
+                <div className="summaryFilesStatus">{summaryFileStatus}</div>
+              </div>
+              <div className="options__card">
+                <h2>Studying for a test?</h2>
+                <p>We can quiz you!</p>
+                <div className="questions_button">
+                  <button
+                    onClick={(e) => determine_route(e, "questionGeneration")}
+                  >
+                    Generate Test Questions
+                  </button>
+                </div>
+                <div className="generateQuestionFilesStatus">
+                  {generateQuestionFileStatus}
+                </div>
+              </div>
+              <div className="options__card">
+                <h2>Have questions about the document?</h2>
+                <p>We can help you with that</p>
+                <div className="ask_question_button">
+                  <button onClick={(e) => determine_route(e, "chatbot")}>
+                    Ask a Question
+                  </button>
+                </div>
+                <div className="askQuestionFilesStatus">
+                  {askQuestionFileStatus}
+                </div>
+              </div>
             </div>
-            <div className="summaryFilesStatus">{summaryFileStatus}</div>
-        </div>
-        <div className="options__card">
-            <h2>Studying for a test?</h2>
-            <p>We can quiz you!</p>
-            <div className="questions_button">
-                <button onClick={(e) => determine_route(e, "questionGeneration")}>Generate Test Questions</button>
-            </div>
-            <div className="generateQuestionFilesStatus">{generateQuestionFileStatus}</div>
-        </div>
-        <div className="options__card">
-            <h2>Have questions about the document?</h2>
-            <p>We can help you with that</p>
-            <div className="ask_question_button">
-                <button onClick={(e) => determine_route(e, "chatbot")}>Ask a Question</button>
-            </div>
-            <div className="askQuestionFilesStatus">{askQuestionFileStatus}</div>
-        </div>
-    </div>
-</div>
-      </>
-    )}
+          </div>
+        </>
+      )}
     </>
   );
 }
