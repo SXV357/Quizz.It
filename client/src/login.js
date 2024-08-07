@@ -28,6 +28,15 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const validationStatusStyles = {
+    color: "rgb(255, 0, 0)",
+    textAlign: "center",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    margin: "10px auto",
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     try {
@@ -123,6 +132,7 @@ export default function Login() {
                 sx={{ mt: 1 }}
               >
                 <TextField
+                  onFocus = {() => setValidationStatus("")}
                   margin="normal"
                   required
                   fullWidth
@@ -135,6 +145,7 @@ export default function Login() {
                   value={email}
                 />
                 <TextField
+                  onFocus = {() => setValidationStatus("")}
                   margin="normal"
                   required
                   fullWidth
@@ -164,7 +175,7 @@ export default function Login() {
                 />
                 <div
                   className="validationStatus"
-                  style={{ color: "rgb(255, 0, 0)", textAlign: "center" }}
+                  style={validationStatusStyles}
                 >
                   {validationStatus}
                 </div>

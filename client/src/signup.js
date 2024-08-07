@@ -47,6 +47,15 @@ export default function SignUp() {
       });
   }
 
+  const validationStatusStyles = {
+    color: "rgb(255, 0, 0)",
+    textAlign: "center",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    margin: "10px auto",
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     try {
@@ -132,6 +141,7 @@ export default function SignUp() {
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
                     <TextField
+                      onFocus = {() => setValidationStatus("")}
                       required
                       fullWidth
                       id="email"
@@ -144,6 +154,7 @@ export default function SignUp() {
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
+                      onFocus = {() => setValidationStatus("")}
                       required
                       fullWidth
                       name="password"
@@ -174,7 +185,7 @@ export default function SignUp() {
                   {renderDisplay()}
                   <div
                     className="validationStatus"
-                    style={{ color: "rgb(255, 0, 0)", textAlign: "center" }}
+                    style={validationStatusStyles}
                   >
                     {validationStatus}
                   </div>
