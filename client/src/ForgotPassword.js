@@ -22,7 +22,12 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
-import { updatePassword, signOut } from "firebase/auth";
+import {
+  updatePassword,
+  signOut,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
 import UseAuthValidation from "./hooks/UseAuthValidation";
 import Loading from "./Loading";
 
@@ -31,86 +36,94 @@ export default function ForgotPassword() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
+  const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [validationStatus, setValidationStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showOldPasword, setShowOldPassword] = useState(false);
 
   const { isPasswordValid, showPassword, renderDisplay, togglePwDisplay } =
     UseAuthValidation(newPassword);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    try {
-      if (!email) {
-        setValidationStatus(
-          "The email cannot be blank. Please enter a valid one and try again!"
-        );
+    if (!email) {
+      setValidationStatus(
+        "The email cannot be blank. Please enter a valid one and try again!"
+      );
+      return;
+    }
+    if (!oldPassword) {
+      setValidationStatus(
+        "The old password cannot be blank. Please enter a valid one and try again!"
+      );
+      return;
+    }
+    if (!newPassword) {
+      setValidationStatus(
+        "The new password cannot be blank. Please enter a valid one and try again!"
+      );
+      return;
+    } else {
+      // password checks
+      if (!isPasswordValid) {
+        setValidationStatus("Invalid password. Please try again!");
         return;
       }
-      if (!newPassword) {
+
+      setValidationStatus("Loading...");
+
+      const q = query(collection(db, "users"), where("email", "==", email));
+      const snapshot = await getDocs(q);
+      const docs = snapshot.docs;
+      if (docs.length === 0) {
         setValidationStatus(
-          "The new password cannot be blank. Please enter a valid one and try again!"
+          "This email is non-existent. Please enter a valid one and try again!"
         );
         return;
       } else {
-        // password checks
-        if (!isPasswordValid) {
-          setValidationStatus("Invalid password. Please try again!");
-          return;
-        }
-
-        const q = query(collection(db, "users"), where("email", "==", email));
-        const snapshot = await getDocs(q);
-        const docs = snapshot.docs;
-        if (docs.length === 0) {
+        const doc = docs[0];
+        const data = doc.data();
+        if (data.password === newPassword) {
           setValidationStatus(
-            "This email is non-existent. Please enter a valid one and try again!"
+            "The new password cannot be the same as your previous one. Please use a different one and try again!"
           );
           return;
         } else {
-          const doc = docs[0];
-          const data = doc.data();
-          if (data.password === newPassword) {
-            setValidationStatus(
-              "The new password cannot be the same as your previous one. Please use a different one and try again!"
-            );
-            return;
-          } else {
-            if (auth.currentUser === null) {
-              setValidationStatus(
-                "You must have logged in atleast once prior to resetting your password"
-              );
-              return;
-            }
-            await updatePassword(auth.currentUser, newPassword)
-              .then(() => {
-                const ref = doc.ref;
-                updateDoc(ref, { password: newPassword }).then(async () => {
-                  await signOut(auth).then(() => {
-                    sessionStorage.removeItem("username");
-                    setIsLoading(true);
-                    setTimeout(() => {
-                      navigate("/login");
-                      setIsLoading(false);
-                    }, 2000);
+          const credential = EmailAuthProvider.credential(
+            auth.currentUser.email,
+            oldPassword
+          );
+          reauthenticateWithCredential(auth.currentUser, credential)
+            .then(async (userCredential) => {
+              await updatePassword(userCredential.user, newPassword)
+                .then(() => {
+                  const ref = doc.ref;
+                  updateDoc(ref, { password: newPassword }).then(async () => {
+                    setValidationStatus("");
+                    await signOut(auth).then(() => {
+                      sessionStorage.removeItem("username");
+                      setIsLoading(true);
+                      setTimeout(() => {
+                        navigate("/login");
+                        setIsLoading(false);
+                      }, 2000);
+                    });
                   });
+                })
+                .catch((e) => {
+                  console.log("error when updating password");
                 });
-              })
-              .catch((e) => {
+            })
+            .catch((e) => {
+              if (e.code === "auth/invalid-credential") {
                 setValidationStatus(
-                  "Internal server error when updating password"
+                  "The email and original password you provided were invalid. Please provide the correct credentials and try again"
                 );
                 return;
-              });
-          }
+              }
+            });
         }
-      }
-    } catch (e) {
-      if (e.code === "auth/missing-email") {
-        setValidationStatus(
-          "The email you have entered is invalid. Please enter a valid one and try again!"
-        );
-        return;
       }
     }
   }
@@ -149,6 +162,8 @@ export default function ForgotPassword() {
                 sx={{ mt: 1, width: "100%" }}
               >
                 <TextField
+                  disabled={validationStatus === "Loading..."}
+                  onFocus={() => setValidationStatus("")}
                   margin="normal"
                   required
                   fullWidth
@@ -161,6 +176,38 @@ export default function ForgotPassword() {
                   value={email}
                 />
                 <TextField
+                  onFocus={() => setValidationStatus("")}
+                  disabled={validationStatus === "Loading..."}
+                  margin="normal"
+                  required
+                  fullWidth
+                  name="oldPasswod"
+                  label="Old Password"
+                  id="oldPassword"
+                  type={showOldPasword ? "text" : "password"}
+                  value={oldPassword}
+                  autoComplete="current-password"
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <div
+                          onClick={() => setShowOldPassword((prev) => !prev)}
+                          style={{ cursor: "pointer", display: "flex" }}
+                        >
+                          {!showOldPasword ? (
+                            <VisibilityOffIcon />
+                          ) : (
+                            <VisibilityIcon />
+                          )}
+                        </div>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                <TextField
+                  disabled={validationStatus === "Loading..."}
+                  onFocus={() => setValidationStatus("")}
                   margin="normal"
                   required
                   fullWidth
@@ -204,6 +251,7 @@ export default function ForgotPassword() {
                   fullWidth
                   variant="contained"
                   sx={{ mt: 3, mb: 2 }}
+                  disabled={validationStatus === "Loading..."}
                 >
                   Reset Password
                 </Button>
@@ -212,6 +260,7 @@ export default function ForgotPassword() {
                     variant="body2"
                     onClick={() => navigate("/app")}
                     style={{ cursor: "pointer" }}
+                    disabled={validationStatus === "Loading..."}
                   >
                     Back to home
                   </Link>

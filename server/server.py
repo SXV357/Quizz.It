@@ -95,7 +95,8 @@ def check_validity():
     except EmailNotValidError as err:
         print(f"Error: {err}")
         return jsonify({"result": str(err), "status": 500})
-    except Exception:
+    except Exception as e:
+        print(f"Error: {e}")
         return jsonify({"result": "Internal server error", "status": 500})
     
 # Endpoint to handle file processing and sending it back to the frontend for upload to cloud storage

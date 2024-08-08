@@ -54,7 +54,7 @@ export default function SignUp() {
     justifyContent: "center",
     alignItems: "center",
     margin: "10px auto",
-  }
+  };
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -141,7 +141,7 @@ export default function SignUp() {
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
                     <TextField
-                      onFocus = {() => setValidationStatus("")}
+                      onFocus={() => setValidationStatus("")}
                       required
                       fullWidth
                       id="email"
@@ -150,11 +150,13 @@ export default function SignUp() {
                       autoComplete="email"
                       onChange={(e) => setEmail(e.target.value)}
                       value={email}
+                      disabled={validationStatus === "Loading..."}
                     />
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
-                      onFocus = {() => setValidationStatus("")}
+                      disabled={validationStatus === "Loading..."}
+                      onFocus={() => setValidationStatus("")}
                       required
                       fullWidth
                       name="password"
@@ -191,6 +193,7 @@ export default function SignUp() {
                   </div>
                 </Grid>
                 <Button
+                  disabled={validationStatus === "Loading..."}
                   type="submit"
                   fullWidth
                   variant="contained"
@@ -200,12 +203,20 @@ export default function SignUp() {
                 </Button>
                 <Grid container spacing={2}>
                   <Grid item xs>
-                    <Link href="/" variant="body2">
+                    <Link
+                      href="/"
+                      variant="body2"
+                      disabled={validationStatus === "Loading..."}
+                    >
                       {"Back to Landing"}
                     </Link>
                   </Grid>
                   <Grid item>
-                    <Link href="/login" variant="body2">
+                    <Link
+                      href="/login"
+                      variant="body2"
+                      disabled={validationStatus === "Loading..."}
+                    >
                       Already have an account? Sign in
                     </Link>
                   </Grid>

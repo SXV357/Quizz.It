@@ -15,7 +15,7 @@ import { auth } from "./firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import { InputAdornment } from "@mui/material";
+import { InputAdornment, stepClasses } from "@mui/material";
 import Loading from "./Loading";
 
 export default function Login() {
@@ -35,7 +35,7 @@ export default function Login() {
     justifyContent: "center",
     alignItems: "center",
     margin: "10px auto",
-  }
+  };
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -52,6 +52,8 @@ export default function Login() {
         return;
       }
 
+      setValidationStatus("Loading...");
+
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -60,6 +62,7 @@ export default function Login() {
       const user = userCredential.user;
 
       if (user.emailVerified) {
+        setValidationStatus("");
         sessionStorage.setItem(
           "username",
           user.email.substring(0, email.indexOf("@"))
@@ -132,7 +135,8 @@ export default function Login() {
                 sx={{ mt: 1 }}
               >
                 <TextField
-                  onFocus = {() => setValidationStatus("")}
+                  disabled={validationStatus === "Loading..."}
+                  onFocus={() => setValidationStatus("")}
                   margin="normal"
                   required
                   fullWidth
@@ -145,7 +149,8 @@ export default function Login() {
                   value={email}
                 />
                 <TextField
-                  onFocus = {() => setValidationStatus("")}
+                  disabled={validationStatus === "Loading..."}
+                  onFocus={() => setValidationStatus("")}
                   margin="normal"
                   required
                   fullWidth
@@ -184,17 +189,26 @@ export default function Login() {
                   fullWidth
                   variant="contained"
                   sx={{ mt: 3, mb: 2 }}
+                  disabled={validationStatus === "Loading..."}
                 >
                   Sign In
                 </Button>
                 <Grid container spacing={2}>
                   <Grid item xs>
-                    <Link href="/" variant="body2">
+                    <Link
+                      href="/"
+                      variant="body2"
+                      disabled={validationStatus === "Loading..."}
+                    >
                       {"Back to Home"}
                     </Link>
                   </Grid>
                   <Grid item>
-                    <Link href="/sign_up" variant="body2">
+                    <Link
+                      href="/sign_up"
+                      variant="body2"
+                      disabled={validationStatus === "Loading..."}
+                    >
                       {"Don't have an account? Sign Up"}
                     </Link>
                   </Grid>

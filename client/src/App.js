@@ -4,6 +4,12 @@ import { auth, storage } from "./firebase";
 import { signOut } from "firebase/auth";
 import { ref, uploadBytes } from "firebase/storage";
 import Loading from "./Loading";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 
 export default function App() {
   const [fileUploadStatus, setFileUploadStatus] = useState("");
@@ -14,6 +20,11 @@ export default function App() {
 
   const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [dialogIsOpen, setDialogIsOpen] = useState(false);
+
+  const toggleDialogDisplay = (state) => {
+    setDialogIsOpen(state);
+  };
 
   const navigate = useNavigate();
 
@@ -115,7 +126,10 @@ export default function App() {
             <div className="navbar__container">
               <div id="navbar__logo">QuizzIt</div>
               <div className="navbar__buttons">
-                <button onClick={(e) => logOut(e)} className="navbar__button">
+                <button
+                  onClick={() => setDialogIsOpen(true)}
+                  className="navbar__button"
+                >
                   Sign Out
                 </button>
                 <button
@@ -125,6 +139,33 @@ export default function App() {
                   Forgot Password?
                 </button>
               </div>
+              <Dialog
+                open={dialogIsOpen}
+                onClose={() => toggleDialogDisplay(false)}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+              >
+                <DialogTitle id="alert-dialog-title">{"Sign Out?"}</DialogTitle>
+                <DialogContent>
+                  <DialogContentText id="alert-dialog-description">
+                    Are you sure you want to sign out?
+                  </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => toggleDialogDisplay(false)}>
+                    Disagree
+                  </Button>
+                  <Button
+                    onClick={(e) => {
+                      toggleDialogDisplay(false);
+                      logOut(e);
+                    }}
+                    autoFocus
+                  >
+                    Agree
+                  </Button>
+                </DialogActions>
+              </Dialog>
             </div>
           </nav>
 
