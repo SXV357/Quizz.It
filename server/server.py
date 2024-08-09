@@ -15,7 +15,7 @@ import io
 from langchain_chroma import Chroma
 from langchain.docstore.document import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-import google.generativeai as genai
+from google.generativeai import GenerativeModel, configure, GenerationConfig
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_core.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains.combine_documents.stuff import create_stuff_documents_chain
@@ -27,9 +27,18 @@ from vertexai.preview import tokenization
 load_dotenv()
 
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-genai.configure(api_key=GOOGLE_API_KEY)
+configure(api_key=GOOGLE_API_KEY)
 GEMINI_MAX_TOKENS = 1_048_576
 tokenizer = tokenization.get_tokenizer_for_model("gemini-1.5-flash")
+
+def get_model(system_prompt: str):
+    return GenerativeModel("gemini-1.5-flash", system_instruction=system_prompt, generation_config=GenerationConfig(
+        max_output_tokens=300,
+        temperature=0.5
+    ))
+
+os.environ["GRPC_VERBOSITY"] = "ERROR"
+os.environ["GLOG_minloglevel"] = "2"
 
 answer_retriever = None
 conversation_threads = deque() # (history, query, response)
@@ -111,15 +120,8 @@ def process_uploaded_file():
             # if there's no extension associated with the file
             if name.rfind(".") == -1:
                 return jsonify({"status": "You need to upload a file that has an extension"})
-            
-            # if this file has already been uploaded previously
-            blobs = list(bucket.list_blobs(prefix=f"{username}/"))
-            if len(blobs) > 0:
-                blobs = list(map(lambda blob: blob.name[blob.name.rfind("/") + 1:], blobs))
-                if name[:name.rfind(".")] + ".pdf" in blobs:
-                    return jsonify({"status": "This file already exists. Please select a different one and try again"})
-            
-            # check if this file has a valid extension
+        
+            # check if this file is a PDF
             extension = name[name.rfind(".") + 1:]
             if extension != "pdf":
                 return jsonify({"status": "Make sure you upload a PDF file only!"})
@@ -128,13 +130,20 @@ def process_uploaded_file():
             file.seek(0, os.SEEK_END)
             bytes = file.tell()
             if bytes == 0:
-                return jsonify({"status": "Please make sure you upload a non-empty document"})
+                return jsonify({"status": "Please make sure you upload a non-empty PDF document"})
             file.seek(0)
 
             # check how many pages it has
             reader = PdfReader(file)
             if len(reader.pages) > 75:
                 return jsonify({"status": "PDFs with a page count greater than 75 are not allowed. Please try again!"})
+            
+            # if this file has already been uploaded previously
+            blobs = list(bucket.list_blobs(prefix=f"{username}/"))
+            if len(blobs) > 0:
+                blobs = list(map(lambda blob: blob.name[blob.name.rfind("/") + 1:], blobs))
+                if name[:name.rfind(".")] + ".pdf" in blobs:
+                    return jsonify({"status": "This file already exists. Please select a different one and try again"})
             
             return jsonify({"status": "PDF OK"})
         
@@ -156,7 +165,7 @@ def summarize_text():
 
     system_prompt = "As a professional summarizer, create a concise and comprehensive summary of the provided text, be it an article, post, conversation, or passage, while adhering to these guidelines:\n1. Craft a summary that is detailed, thorough, in-depth, and complex, while maintaining clarity and conciseness.\n2. Incorporate main ideas and essential information, eliminating extraneous language and focusing on critical aspects.\n3. Rely strictly on the provided text, without including external information.\n4. Format the summary in paragraph form for easy understanding."
 
-    llm = genai.GenerativeModel("gemini-1.5-flash", system_instruction=system_prompt)
+    llm = get_model(system_prompt)
 
     page_groups = []
     # if there are 15+ pages
@@ -279,62 +288,77 @@ def generate_questions_pdf():
     file = data.get("file")
     username = data.get("username")
 
+    print(f"question types: {question_types}")
+
     main_blob = bucket.blob(f"{username}/{file}")
     download_url = main_blob.generate_signed_url(datetime.now() + timedelta(hours=24))
     req = requests.get(download_url)
     assert req.status_code == 200
     text_contents = extract_file_contents(req.content)
 
-    docs = []
-    for page in text_contents:
-        docs.append(Document(page_content=text_contents[page], metadata={"source": file}))
-        
-    splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=400)
-    split_docs = splitter.split_documents(docs)
-
-    # creating chunks of size 5 further from the split_documents
+    # creating chunks of size 5 from the document in case it is too long
     doc_groups = []
-    if len(split_docs) >= 15:
-        for i in range(0, len(split_docs), 5):
-            doc_groups.append(split_docs[i:i+5])
+    if len(text_contents) >= 15:
+        page_contents = list(text_contents.values())
+        for i in range(0, len(page_contents), 5):
+            doc_groups.append(page_contents[i:i+5])
 
-    system_prompt = f"You are a highly knowledgeable assistant tasked with generating insightful and useful questions based on the provided document text. Your goal is to help a user deepen their understanding of the document's content, whether they are studying for a test, preparing for a discussion, or seeking a more comprehensive grasp of the material. Depending on the text and its content, generate either one question or multiple questions that are clear, thought-provoking, and cover key concepts and details presented in the text. Ensure that the questions span the following types, if appropriate: {question_types}. Include answer choices for multiple-choice questions and ensure all questions are in the same format without any headers. If the text block does not contain enough information to generate meaningful questions, simply respond with 'N/A'. Only provide the question(s) and not the answer(s)."
+    system_prompt = f"""
+    You are a highly knowledgeable assistant tasked with generating insightful and useful questions based on the provided document text. Your goal is to help a user deepen their understanding of the document's content, whether they are studying for a test, preparing for a discussion, or seeking a more comprehensive grasp of the material.
+
+    Instructions:
+
+    1. Generate questions that are clear, thought-provoking, and cover key concepts and details presented in the text.
+    2. Focus on the following question types: {question_types}.
+    3. The number of questions should be proportional to the amount and complexity of the information in the text block.
+    4. Number each question for clarity and consistency.
+
+    Your goal is to ensure the questions facilitate a deeper understanding of the content, encourage critical thinking, and highlight essential themes and details.
+    """
 
     def inject_prompt(text: str) -> str:
         return f"Generate a question or several questions based on the following text block.\n Text block: {text}"
     
-    questions = []
-    model = genai.GenerativeModel("gemini-1.5-flash", system_instruction=system_prompt)
-    # number of split documents is < 10
+    questions = defaultdict(str)
+    model = get_model(system_prompt)
+
+    # number of split documents is < 15
+    start_page = 1
     if not doc_groups:
-        for doc in split_docs:
-            content = doc.page_content
-            response = model.generate_content(inject_prompt(content))
-            questions.append(response.text)
-    # number of split documents >= 10
+        for page_text in text_contents.values():
+            response = model.generate_content(inject_prompt(page_text))
+            questions[f"Page {start_page}"] = response.text
+            start_page += 1
+    # number of split documents >= 15
     else:
-        for group in doc_groups:
-            text = "\n\n".join(doc.page_content for doc in group)
+        start, end = 1, 5
+        for i in range(len(doc_groups)):
+            curr_len = len(doc_groups[i])
+            if i > 0:
+                if curr_len == 5:
+                    start, end = start + 5, end + 5
+                else:
+                    start, end = start + 5, end + curr_len
+            text = "\n\n".join(content for content in doc_groups[i])
             response = model.generate_content(inject_prompt(text))
-            questions.append(response.text)
+            questions[f"Pages {start}-{end}"] = response.text
+    
+    print(f"questions: {questions}")
     
     pdf = FPDF()
-
+    pdf.set_auto_page_break(True)
     pdf.add_page()
-    pdf.set_font("Arial", size=10)
+    pdf.set_font("Helvetica", size=10)
     
-    start = 1
-    for question in questions:
-        if question != "N/A":
-            # handle encoding of characters outside the default range(ignore instead of replacing them)
-            pdf.multi_cell(0, 5, f"{start}. {question}\n")
-            start += 1
+    for pair in questions:
+        pdf.multi_cell(100, 5, f"{pair}\n{questions[pair]}")
+        pdf.ln(5)
     
     # cannot do pdf.output(result_file) because it thinks result_file is the name of a file which is not true
     # to write to the binary file, pdf contents need to be converted to bytes
     # encoding needed to convert string into bytes that is compatible with the write function
     result_file = io.BytesIO()
-    result_file.write(pdf.output(dest="S").encode("latin-1"))
+    pdf.output(result_file)
     result_file.seek(0)
 
     return send_file(result_file, mimetype="application/pdf", as_attachment=True, download_name=f"{file[:file.rfind('.')]}-generatedQuestions.pdf")

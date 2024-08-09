@@ -42,7 +42,7 @@ export default function SummaryPage() {
           </ul>
         </div>
         <button
-          className="toHomePage"
+          id="toHomePage"
           type="button"
           onClick={(e) => {
             e.preventDefault();

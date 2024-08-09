@@ -6,7 +6,7 @@ import "./styles/selection.css";
 export default function SummarySelection() {
   const [summarizeFiles, setSummarizeFiles] = useState([]);
   const [summarizeFileStatus, setSummarizeFileStatus] = useState("");
-  const [isDisabled, setIsDisabled] = useState(false);
+  const [selectedFile, setSelectedFile] = useState("")
 
   const navigate = useNavigate();
   const username = sessionStorage.getItem("username");
@@ -21,29 +21,24 @@ export default function SummarySelection() {
 
   const summarize = async (e) => {
     e.preventDefault();
-    let fileType = document.getElementById("summarizeFileSelect");
-    const selectedFile = Array.from(fileType.options)
-      .filter((option) => option.selected)
-      .map((option) => option.value);
 
-    if (selectedFile[0] === undefined) {
+    if (selectedFile === "") {
       setSummarizeFileStatus("You need to select a file!");
       return;
     }
 
     setSummarizeFileStatus("Loading...");
-    setIsDisabled(true);
 
     try {
       fetch(
-        `http://127.0.0.1:5000/generate_summary?username=${username}&file=${selectedFile[0]}`,
+        `http://127.0.0.1:5000/generate_summary?username=${username}&file=${selectedFile}`,
         {
           method: "GET",
         }
       )
         .then((res) => res.json())
         .then((data) => {
-          setIsDisabled(false);
+          setSummarizeFileStatus("");
           navigate("/summary_page", { state: data });
         });
     } catch (error) {
@@ -63,8 +58,12 @@ export default function SummarySelection() {
         <select
           id="summarizeFileSelect"
           name="summarizeFileSelect"
-          disabled={isDisabled}
+          disabled={summarizeFileStatus === "Loading..."}
+          value = {selectedFile}
+          onChange = {(e) => setSelectedFile(e.target.value)}
+          onFocus = {() => setSummarizeFileStatus("")}
         >
+          <option value = "" disabled>Select a file</option>
           {summarizeFiles.map((file, idx) => {
             return (
               <option key={idx} value={file}>
@@ -77,14 +76,14 @@ export default function SummarySelection() {
           type="button"
           id="btn"
           onClick={(e) => summarize(e)}
-          disabled={isDisabled}
+          disabled={summarizeFileStatus === "Loading..."}
         >
           Summarize This File
         </button>
       </form>
       <button
         id="toHomePage"
-        disabled={isDisabled}
+        disabled={summarizeFileStatus === "Loading..."}
         type="button"
         onClick={(e) => {
           e.preventDefault();

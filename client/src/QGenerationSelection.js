@@ -9,6 +9,8 @@ export default function QGenerationSelection() {
   const [questionGenerationFiles, setQuestionGenerationFiles] = useState([]);
   const [generatePDFStatus, setGeneratePDFStatus] = useState("");
   const [isDisabled, setIsDisabled] = useState(false);
+  const [selectedFile, setSelectedFile] = useState("")
+
   const username = sessionStorage.getItem("username");
 
   const navigate = useNavigate();
@@ -24,18 +26,19 @@ export default function QGenerationSelection() {
   const generateQuestions = (e) => {
     e.preventDefault();
     let questionType = document.getElementById("questionType");
-    let fileType = document.getElementById("questionFileSelect");
     let fileDownload = document.getElementById("questionsDownload");
+
+    fileDownload.style.display = "none"
 
     const questionTypes = Array.from(questionType.options)
       .filter((option) => option.selected)
       .map((option) => option.value);
-    const selectedFile = Array.from(fileType.options)
-      .filter((option) => option.selected)
-      .map((option) => option.value)[0];
 
     if (questionTypes.length === 0) {
       setGeneratePDFStatus("You need to select atleast one question type!");
+      return;
+    } else if (selectedFile === "") {
+      setGeneratePDFStatus("Make sure you have selected a file!");
       return;
     }
 
@@ -78,6 +81,7 @@ export default function QGenerationSelection() {
             name="questionType"
             multiple
             disabled={isDisabled}
+            onFocus={() => setGeneratePDFStatus("")}
           >
             <option value="multipleChoice">Multiple Choice</option>
             <option value="shortAnswer">Short Answer</option>
@@ -91,7 +95,11 @@ export default function QGenerationSelection() {
             id="questionFileSelect"
             name="questionFileSelect"
             disabled={isDisabled}
+            onChange = {(e) => setSelectedFile(e.target.value)}
+            value = {selectedFile}
+            onFocus={() => setGeneratePDFStatus("")}
           >
+            <option value = "" disabled>Select a file</option>
             {questionGenerationFiles.map((file, idx) => {
               return (
                 <option key={idx} value={file}>
