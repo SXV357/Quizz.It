@@ -6,6 +6,9 @@ import "./styles/selection.css";
 export default function QAnsweringSelection() {
   const [questionAnsweringFiles, setQuestionAnsweringFiles] = useState([]);
   const [qaFileSelectionStatus, setQaFileSelectionStatus] = useState("");
+  const [selectedFile, setSelectedFile] = useState("")
+  const [isDisabled, setIsDisabled] = useState(false);
+
   const username = sessionStorage.getItem("username");
 
   const navigate = useNavigate();
@@ -20,13 +23,8 @@ export default function QAnsweringSelection() {
 
   const selectFile = (e) => {
     e.preventDefault();
-    let fileType = document.getElementById("askQuestionFileSelect");
 
-    const selectedFile = Array.from(fileType.options)
-      .filter((option) => option.selected)
-      .map((option) => option.value)[0];
-
-    if (selectedFile === undefined) {
+    if (selectedFile === "") {
       setQaFileSelectionStatus("You need to select a file!");
       return;
     }
@@ -34,6 +32,8 @@ export default function QAnsweringSelection() {
     setQaFileSelectionStatus(
       "Please wait as the document is being processed..."
     );
+    setIsDisabled(true)
+
     fetch(
       `http://127.0.0.1:5000/signal_doc_qa_selection?file=${selectedFile}&username=${username}`,
       {
@@ -43,6 +43,7 @@ export default function QAnsweringSelection() {
       .then((res) => res.json())
       .then((data) => {
         if (data.status === "OK") {
+          setIsDisabled(false)
           setQaFileSelectionStatus("");
           navigate("/chatbot_page");
         }
@@ -57,7 +58,8 @@ export default function QAnsweringSelection() {
           <label htmlFor="askQuestionFileSelect">
             Select a file that you would like to ask questions about
           </label>
-          <select id="askQuestionFileSelect" name="askQuestionFileSelect">
+          <select id="askQuestionFileSelect" name="askQuestionFileSelect" value = {selectedFile} onChange = {(e) => setSelectedFile(e.target.value)} disabled = {isDisabled} onFocus = {() => setQaFileSelectionStatus("")}>
+            <option value = "" disabled>Select a file</option>
             {questionAnsweringFiles.map((file, idx) => {
               return (
                 <option key={idx} value={file}>
@@ -66,7 +68,7 @@ export default function QAnsweringSelection() {
               );
             })}
           </select>
-          <button type="button" id="btn" onClick={(e) => selectFile(e)}>
+          <button type="button" id="btn" onClick={(e) => selectFile(e)} disabled = {isDisabled}>
             Chat about this file
           </button>
         </form>
@@ -77,6 +79,7 @@ export default function QAnsweringSelection() {
             e.preventDefault();
             navigate("/app");
           }}
+          disabled = {isDisabled}
         >
           Go To Home Page
         </button>

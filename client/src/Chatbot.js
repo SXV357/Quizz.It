@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./styles/chatbot.css";
 
 export default function Chatbot() {
   const [query, setQuery] = useState("");
   const [isDisabled, setIsDisabled] = useState(false);
 
-  const location = useLocation();
   const navigate = useNavigate();
-  const username = location.state;
 
   useEffect(() => {
     sessionStorage.removeItem("history");
@@ -59,32 +57,30 @@ export default function Chatbot() {
         conversation.removeChild(loader);
 
         const response = data["response"];
-        const usedTokens = data["usedTokens"];
-        const updatedHistory = data["updatedHistory"];
 
-        console.log(`response: ${response}`);
-        console.log(`used tokens: ${usedTokens}`);
-        console.log(`updated history: ${updatedHistory}`);
-
-        // appending bot message to conversation container
         let botElem = document.createElement("div");
         botElem.className = "message bot-message";
         botElem.innerHTML = response;
         conversation.appendChild(botElem);
 
-        // updating number of used tokens in session storage
-        sessionStorage.setItem("usedTokens", usedTokens);
+        if (response !== "An error occurred...") {
+          const usedTokens = data["usedTokens"];
+          const updatedHistory = data["updatedHistory"];
 
-        if (updatedHistory) {
-          localHistory = updatedHistory;
+          // updating number of used tokens in session storage
+          sessionStorage.setItem("usedTokens", usedTokens);
+
+          if (updatedHistory) {
+            localHistory = updatedHistory;
+            sessionStorage.setItem("history", JSON.stringify(localHistory));
+          }
+
+          // updating conversation history with latest interaction
+          localHistory["user"].push(query);
+          localHistory["bot"].push(response);
           sessionStorage.setItem("history", JSON.stringify(localHistory));
         }
-
-        // updating conversation history with latest interaction
-        localHistory["user"].push(query);
-        localHistory["bot"].push(response);
-        sessionStorage.setItem("history", JSON.stringify(localHistory));
-      });
+      })
   };
 
   return (
@@ -95,7 +91,7 @@ export default function Chatbot() {
         onClick={() => {
           sessionStorage.removeItem("history");
           sessionStorage.removeItem("usedTokens");
-          navigate("/fetch_ask_questions_files", { state: username });
+          navigate("/fetch_ask_questions_files");
         }}
       >
         Back to file selection

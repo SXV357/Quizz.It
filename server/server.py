@@ -28,7 +28,7 @@ load_dotenv()
 
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 configure(api_key=GOOGLE_API_KEY)
-GEMINI_MAX_TOKENS = 1_048_576
+GEMINI_MAX_TOKENS = 500
 tokenizer = tokenization.get_tokenizer_for_model("gemini-1.5-flash")
 
 def get_model(system_prompt: str):
@@ -40,7 +40,11 @@ def get_model(system_prompt: str):
 os.environ["GRPC_VERBOSITY"] = "ERROR"
 os.environ["GLOG_minloglevel"] = "2"
 
+vector_db = None
+doc_chain = None
+retrieval_chain = None
 answer_retriever = None
+rag_llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
 conversation_threads = deque() # (history, query, response)
 
 system_prompt = (
@@ -197,17 +201,35 @@ def summarize_text():
 @app.route("/signal_doc_qa_selection", methods = ["POST"])
 def invoke_doc_processal():
     # reset it to NULL each time before a new chain is created for the current document
+    print(f"new document selected. resetting previous information")
+    global vector_db
+    global doc_chain
+    global retrieval_chain
     global answer_retriever
+
+    vector_db = None
+    doc_chain = None
     answer_retriever = None
+    retrieval_chain = None
     conversation_threads.clear()
+    
+    # print(f"answer retriever now: {answer_retriever}")
+    # print(f"conversation threads now: {conversation_threads}")
+    # print(f"vector db now: {vector_db}")
 
     file = request.args.get("file")
     username = request.args.get("username")
     initialize_qa_chain(file, username)
 
+    # print(f"answer retriever after: {answer_retriever}")
+    # print(f"vector db after: {vector_db}")
+
     return jsonify({"status": "OK"})
 
 def initialize_qa_chain(file: str, username: str) -> None:
+    global vector_db
+    global doc_chain
+    global retrieval_chain
     global answer_retriever
 
     blob = bucket.blob(f"{username}/{file}")
@@ -220,13 +242,15 @@ def initialize_qa_chain(file: str, username: str) -> None:
     
     splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=400)
     split_docs = splitter.split_documents(docs)
-    db = Chroma.from_documents(split_docs, GoogleGenerativeAIEmbeddings(
+
+    print(f"split docs: {split_docs}")
+
+    vector_db = Chroma.from_documents(split_docs, GoogleGenerativeAIEmbeddings(
         model="models/embedding-001"
     ))
-    retriever = db.as_retriever(search_kwargs={"k": 3})
+    retriever = vector_db.as_retriever(search_kwargs={"k": 3})
 
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
-    doc_chain = create_stuff_documents_chain(llm, prompt)
+    doc_chain = create_stuff_documents_chain(rag_llm, prompt)
     retrieval_chain = create_retrieval_chain(retriever, doc_chain)
 
     answer_retriever = retrieval_chain
@@ -238,8 +262,29 @@ def fetch_response():
 
     modified_history, history_tokens = deque(), 0
     token_limit_exceeded = False
+    
+    query_tokens = tokenizer.count_tokens(query).total_tokens
 
-    if history["user"] and history["bot"]:
+    # handle chat history truncation
+    if query_tokens + used_tokens >= GEMINI_MAX_TOKENS:
+        token_limit_exceeded = True
+        current = query_tokens + used_tokens
+        while current >= GEMINI_MAX_TOKENS:
+            # for one given thread
+            h_tokens, q_tokens, ans_tokens = conversation_threads.popleft()
+            overall = h_tokens + q_tokens + ans_tokens
+            current -= overall
+            used_tokens -= overall
+
+            # removing one interaction(Human + AI)
+            modified_history.popleft()
+            modified_history.popleft()
+
+            # updating history passed in from session storage on client because this history will be sent back
+            history["user"].pop(0)
+            history["bot"].pop(0)
+
+    elif history["user"] and history["bot"]:
         contents = list(zip(history["user"], history["bot"]))
         # include tokens for whatever history is passed in 
         for user, bot in contents:
@@ -249,37 +294,22 @@ def fetch_response():
             modified_history.append(HumanMessage(user))
             modified_history.append(AIMessage(bot))
     
-    query_tokens = tokenizer.count_tokens(query).total_tokens
-
-    # handle chat history truncation
-    if query_tokens + used_tokens >= GEMINI_MAX_TOKENS:
-        token_limit_exceeded = True
-        current = query_tokens + used_tokens
-        while current >= GEMINI_MAX_TOKENS:
-            h_tokens, q_tokens, ans_tokens = conversation_threads.popleft()
-            overall = h_tokens + q_tokens + ans_tokens
-            current -= overall
-            used_tokens -= overall
-
-            # removing one interaction
-            modified_history.popleft()
-            modified_history.popleft()
-
-            history["user"].pop(0)
-            history["bot"].pop(0)
-    
     # including tokens used for query
     used_tokens += query_tokens
     
-    response = answer_retriever.invoke({"input": query, "chat_history": list(modified_history)})["answer"]
-    response_tokens = tokenizer.count_tokens(response).total_tokens
+    try:
+        response = answer_retriever.invoke({"input": query, "chat_history": list(modified_history)})["answer"]
+        response_tokens = tokenizer.count_tokens(response).total_tokens
 
-    # including tokens used for response
-    used_tokens += response_tokens
+        # including tokens used for response
+        used_tokens += response_tokens
 
-    conversation_threads.append((history_tokens, query_tokens, response_tokens))
+        conversation_threads.append((history_tokens, query_tokens, response_tokens))
 
-    return jsonify({"response": response, "usedTokens": used_tokens, "updatedHistory": history if token_limit_exceeded else None})
+        return jsonify({"response": response, "usedTokens": used_tokens, "updatedHistory": history if token_limit_exceeded else None})
+
+    except AttributeError:
+        return jsonify({"response": "An error occurred..."})
 
 @app.route("/generate_pdf", methods = ["POST"])
 def generate_questions_pdf():
@@ -351,7 +381,7 @@ def generate_questions_pdf():
     pdf.set_font("Helvetica", size=10)
     
     for pair in questions:
-        pdf.multi_cell(100, 5, f"{pair}\n{questions[pair]}")
+        pdf.multi_cell(375, 5, f"{pair}\n{questions[pair]}")
         pdf.ln(5)
     
     # cannot do pdf.output(result_file) because it thinks result_file is the name of a file which is not true
