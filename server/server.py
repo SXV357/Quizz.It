@@ -25,27 +25,34 @@ from langchain_core.messages.ai import AIMessage
 from vertexai.preview import tokenization
 
 load_dotenv()
+# prevent the warning that arises when using the Gemini API
+os.environ["GRPC_VERBOSITY"] = "ERROR"
+os.environ["GLOG_minloglevel"] = "2"
 
+# variables related to configuring the Gemini API and setting up the necessary parameters
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 configure(api_key=GOOGLE_API_KEY)
-GEMINI_MAX_TOKENS = 500
+GEMINI_MAX_TOKENS = 1_048_576
 tokenizer = tokenization.get_tokenizer_for_model("gemini-1.5-flash")
 
+rag_llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY) # for the RAG pipeline
+
+# primarily for the document summary and document question generation endpoints
 def get_model(system_prompt: str):
     return GenerativeModel("gemini-1.5-flash", system_instruction=system_prompt, generation_config=GenerationConfig(
         max_output_tokens=300,
         temperature=0.5
     ))
 
-os.environ["GRPC_VERBOSITY"] = "ERROR"
-os.environ["GLOG_minloglevel"] = "2"
-
+# variables related to the RAG pipeline and conversation logs
 vector_db = None
 doc_chain = None
 retrieval_chain = None
 answer_retriever = None
-rag_llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", api_key=GOOGLE_API_KEY)
-conversation_threads = deque() # (history, query, response)
+
+# contains token information per conversation thread as follows:
+    # (number of tokens in history passed in, number of tokens in query, number of tokens in response)
+conversation_threads = deque()
 
 system_prompt = (
     "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise."
@@ -59,6 +66,7 @@ prompt = ChatPromptTemplate.from_messages([
     ("human", "{input}")
 ])
 
+# initialize the firebase application using the admin sdk
 firebase_admin.initialize_app(
     credentials.Certificate({ \
         "type": "service_account", \
@@ -73,27 +81,65 @@ firebase_admin.initialize_app(
         "client_x509_cert_url": os.environ.get('CLIENT_X509_CERT_URL'), \
     }), {'storageBucket': os.environ.get('STORAGE_BUCKET')})
 
+# initializing the application and enabling CORS along with retrieving the storage bucket
 app = Flask(__name__)
 CORS(app)
 bucket = storage.bucket()
 
 def extract_file_contents(file_bytes: bytes) -> Dict[str, str]:
+    """
+    Function that takes in the raw byte contents of a user uploaded file and returns a dictionary containing the extracted text by page.
+    """
     pdf_images = convert_to_image(file_bytes)
     text_contents = process_pdf_page(pdf_images) 
     return text_contents
 
-# Endpoint to check the existence of files for this given user in the database
+def initialize_qa_chain(file: str, username: str) -> None:
+    """
+    The function triggered by the /signal_doc_qa_selection endpoint that instantiates a new RAG pipeline when the user wants to ask questions to the chatbot about a specific document.
+    """
+    global vector_db
+    global doc_chain
+    global retrieval_chain
+    global answer_retriever
+
+    blob = bucket.blob(f"{username}/{file}")
+    url = blob.generate_signed_url(datetime.now() + timedelta(hours=24))
+    req = requests.get(url)
+    assert req.status_code == 200
+    text_contents = extract_file_contents(req.content)
+
+    docs = [Document(page_content=text_contents[page], metadata={"source": file}) for page in text_contents]
+    
+    splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=400)
+    split_docs = splitter.split_documents(docs)
+
+    vector_db = Chroma.from_documents(split_docs, GoogleGenerativeAIEmbeddings(
+        model="models/embedding-001"
+    ))
+    retriever = vector_db.as_retriever(search_kwargs={"k": 3})
+
+    doc_chain = create_stuff_documents_chain(rag_llm, prompt)
+    retrieval_chain = create_retrieval_chain(retriever, doc_chain)
+
+    answer_retriever = retrieval_chain
+
 @app.route("/check_files", methods = ["GET"])
 def return_file_count():
+    """
+    Endpoint that checks whether the currently logged in user has uploaded any files.
+    """
     username = request.args.get("username")
     blobs = list(bucket.list_blobs(prefix=f"{username}/"))
     if len(blobs) > 0:
         return jsonify({"filesExist": True})
     return jsonify({"filesExist": False})
 
-# Endpoint for fetching all the files uploaded by the current user.
 @app.route("/fetch_files", methods = ["GET"])
 def get_files():
+    """
+    Endpoint that retrieves a list of files uploaded by the currently logged in user
+    """
     username = request.args.get("username")
     blobs = list(bucket.list_blobs(prefix=f"{username}/"))
     blobs = list(map(lambda blob: blob.name[blob.name.rfind("/") + 1:], blobs))
@@ -101,6 +147,9 @@ def get_files():
 
 @app.route("/check-email-validity", methods = ["GET"])
 def check_validity():
+    """
+    Endpoint that checks the validity of the email that a user signs up with. Checks for valid regex, including whether emails can be sent to that particular one.
+    """
     email = request.args.get("email")
     try:
         res = validate_email(email, check_deliverability=True)
@@ -112,9 +161,11 @@ def check_validity():
         print(f"Error: {e}")
         return jsonify({"result": "Internal server error", "status": 500})
     
-# Endpoint to handle file processing and sending it back to the frontend for upload to cloud storage
 @app.route("/upload_file", methods = ["POST"])
 def process_uploaded_file():
+    """
+    Endpoint to handle file processing and sending it back to the frontend for upload to storage
+    """
     try:
         if request.method == "POST" and "upload" in request.files:
             username = request.args.get("username")
@@ -130,14 +181,14 @@ def process_uploaded_file():
             if extension != "pdf":
                 return jsonify({"status": "Make sure you upload a PDF file only!"})
 
-            # check whether file is not empty after determinining if its a valid document to ensure tesseract compatibility
+            # check whether file is not empty to ensure tesseract compatibility
             file.seek(0, os.SEEK_END)
             bytes = file.tell()
             if bytes == 0:
                 return jsonify({"status": "Please make sure you upload a non-empty PDF document"})
             file.seek(0)
 
-            # check how many pages it has
+            # ensure page limit isn't exceeded
             reader = PdfReader(file)
             if len(reader.pages) > 75:
                 return jsonify({"status": "PDFs with a page count greater than 75 are not allowed. Please try again!"})
@@ -152,11 +203,13 @@ def process_uploaded_file():
             return jsonify({"status": "PDF OK"})
         
     except Exception as e: 
-        print(e)
         return jsonify({"status": "Error when uploading the file. Please try again!"})
 
 @app.route("/generate_summary", methods = ["GET"])
 def summarize_text():
+    """
+    Endpoint that takes in the user uploaded document as input and returns a dictionary containing a page-by-page summary of the document along with its statistics.
+    """
     username, file = request.args.get("username"), request.args.get("file")
 
     blob = bucket.blob(f"{username}/{file}")
@@ -196,67 +249,38 @@ def summarize_text():
             summarized_text[page] = llm.generate_content(text_contents[page]).text
 
     # returning a dictionary that contains a page-by-page summary of the document
-    return jsonify({"summarized_text": list(summarized_text.items()), "statistics": text_statistics, "username": username})
+    return jsonify({"summarized_text": list(summarized_text.items()), "statistics": text_statistics})
 
 @app.route("/signal_doc_qa_selection", methods = ["POST"])
 def invoke_doc_processal():
-    # reset it to NULL each time before a new chain is created for the current document
-    print(f"new document selected. resetting previous information")
+    """
+    Endpoint that is triggered when the user selects a document to ask questions about to the chatbot. Resets all the RAG pipeline values and then re-updates them through the initialize_qa_chain function.
+    """
     global vector_db
     global doc_chain
     global retrieval_chain
     global answer_retriever
 
+    # clear out any previous values to ensure compatibility with the new document
     vector_db = None
     doc_chain = None
     answer_retriever = None
     retrieval_chain = None
     conversation_threads.clear()
-    
-    # print(f"answer retriever now: {answer_retriever}")
-    # print(f"conversation threads now: {conversation_threads}")
-    # print(f"vector db now: {vector_db}")
 
     file = request.args.get("file")
     username = request.args.get("username")
-    initialize_qa_chain(file, username)
 
-    # print(f"answer retriever after: {answer_retriever}")
-    # print(f"vector db after: {vector_db}")
+    # update all the values once again through this function
+    initialize_qa_chain(file, username)
 
     return jsonify({"status": "OK"})
 
-def initialize_qa_chain(file: str, username: str) -> None:
-    global vector_db
-    global doc_chain
-    global retrieval_chain
-    global answer_retriever
-
-    blob = bucket.blob(f"{username}/{file}")
-    url = blob.generate_signed_url(datetime.now() + timedelta(hours=24))
-    req = requests.get(url)
-    assert req.status_code == 200
-    text_contents = extract_file_contents(req.content)
-
-    docs = [Document(page_content=text_contents[page], metadata={"source": file}) for page in text_contents]
-    
-    splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=400)
-    split_docs = splitter.split_documents(docs)
-
-    print(f"split docs: {split_docs}")
-
-    vector_db = Chroma.from_documents(split_docs, GoogleGenerativeAIEmbeddings(
-        model="models/embedding-001"
-    ))
-    retriever = vector_db.as_retriever(search_kwargs={"k": 3})
-
-    doc_chain = create_stuff_documents_chain(rag_llm, prompt)
-    retrieval_chain = create_retrieval_chain(retriever, doc_chain)
-
-    answer_retriever = retrieval_chain
-
 @app.route("/get_model_response", methods = ["POST"])
 def fetch_response():
+    """
+    Endpoint responsible for fetching a response from the LLM in response to a user query.
+    """
     data = request.json
     query, history, used_tokens = data.get("query"), data.get("history"), data.get("usedTokens")
 
@@ -313,6 +337,9 @@ def fetch_response():
 
 @app.route("/generate_pdf", methods = ["POST"])
 def generate_questions_pdf():
+    """
+    Endpoint responsible for taking in an array of question types and the document, generating a PDF with test/quiz questions, and then sending it back to the frontend.
+    """
     data = request.json
     question_types = data.get("questionTypes") # array of all the selected options
     file = data.get("file")
@@ -384,9 +411,6 @@ def generate_questions_pdf():
         pdf.multi_cell(375, 5, f"{pair}\n{questions[pair]}")
         pdf.ln(5)
     
-    # cannot do pdf.output(result_file) because it thinks result_file is the name of a file which is not true
-    # to write to the binary file, pdf contents need to be converted to bytes
-    # encoding needed to convert string into bytes that is compatible with the write function
     result_file = io.BytesIO()
     pdf.output(result_file)
     result_file.seek(0)

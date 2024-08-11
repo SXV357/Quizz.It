@@ -6,7 +6,7 @@ import "./styles/selection.css";
 export default function SummarySelection() {
   const [summarizeFiles, setSummarizeFiles] = useState([]);
   const [summarizeFileStatus, setSummarizeFileStatus] = useState("");
-  const [selectedFile, setSelectedFile] = useState("")
+  const [selectedFile, setSelectedFile] = useState("");
 
   const navigate = useNavigate();
   const username = sessionStorage.getItem("username");
@@ -59,11 +59,13 @@ export default function SummarySelection() {
           id="summarizeFileSelect"
           name="summarizeFileSelect"
           disabled={summarizeFileStatus === "Loading..."}
-          value = {selectedFile}
-          onChange = {(e) => setSelectedFile(e.target.value)}
-          onFocus = {() => setSummarizeFileStatus("")}
+          value={selectedFile}
+          onChange={(e) => setSelectedFile(e.target.value)}
+          onFocus={() => setSummarizeFileStatus("")}
         >
-          <option value = "" disabled>Select a file</option>
+          <option value="" disabled>
+            Select a file
+          </option>
           {summarizeFiles.map((file, idx) => {
             return (
               <option key={idx} value={file}>

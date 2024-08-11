@@ -80,7 +80,7 @@ export default function Chatbot() {
           localHistory["bot"].push(response);
           sessionStorage.setItem("history", JSON.stringify(localHistory));
         }
-      })
+      });
   };
 
   return (

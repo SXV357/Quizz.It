@@ -65,7 +65,6 @@
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #007bff;
 }
 
-/* Intro Section */
 .intro {
   background: linear-gradient(to right, #161616, #000000);
   padding: 150px 0;
@@ -115,7 +114,6 @@
   padding-top: 20px;
 }
 
-/* Section */
 .intro__section {
   max-width: 400px;
   margin: 50px auto;
@@ -123,7 +121,6 @@
   font-family: Arial, sans-serif;
 }
 
-/* Form */
 #uploadForm {
   display: flex;
   flex-direction: column;
@@ -178,7 +175,6 @@
   font-weight: bold;
 }
 
-/* Options Section */
 .options {
   background: #131313;
   display: flex;
@@ -284,7 +280,6 @@
   background-image: linear-gradient(to right, #245b81, #12d8fa, #a6ffcb);
 }
 
-/* File Upload Status */
 .file_upload_status {
   margin-top: 30px;
   font-size: 16px;

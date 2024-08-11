@@ -35,7 +35,7 @@ export default function Landing() {
               save time with tailored summaries that highlight key points.
             </p>
           </div>
-          <img className="feature-img" src={summarization} alt = ""/>
+          <img className="feature-img" src={summarization} alt="" />
         </section>
         <section className="feature-section">
           <div className="feature-content">
@@ -47,7 +47,7 @@ export default function Landing() {
               challenge.
             </p>
           </div>
-          <img className="feature-img" src={questionGeneration} alt = ""/>
+          <img className="feature-img" src={questionGeneration} alt="" />
         </section>
         <section className="feature-section">
           <div className="feature-content">
@@ -58,7 +58,7 @@ export default function Landing() {
               learning experience with this powerful Q&A tool.
             </p>
           </div>
-          <img className="feature-img" src={chatbot} alt = ""/>
+          <img className="feature-img" src={chatbot} alt="" />
         </section>
       </div>
     </>

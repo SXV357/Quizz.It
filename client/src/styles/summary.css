@@ -1,4 +1,3 @@
-/* Select */
 #summarizeFileSelect {
   padding: 10px;
   border: 1px solid #ccc;
@@ -14,7 +13,6 @@
   border-color: #007bff;
 }
 
-/* Section */
 #summarizeSection {
   max-width: 800px;
   margin: 50px auto;
@@ -25,13 +23,11 @@
   font-family: Arial, sans-serif;
 }
 
-/* Summary and Stats Divs */
 #summarizeSection .summary,
 #summarizeSection .stats {
   margin-bottom: 30px;
 }
 
-/* Headings */
 #summarizeSection h2 {
   text-align: left;
   color: #333;
@@ -39,7 +35,6 @@
   margin-bottom: 15px;
 }
 
-/* Paragraph */
 .summary_text {
   font-size: 16px;
   color: #555;
@@ -50,7 +45,6 @@
   border-radius: 4px;
 }
 
-/* List */
 #summarizeSection ul {
   list-style-type: none;
   padding: 0;

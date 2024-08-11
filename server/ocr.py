@@ -1,4 +1,4 @@
-from pdf2image import convert_from_path, convert_from_bytes
+from pdf2image import convert_from_bytes
 import numpy as np
 import cv2
 import pytesseract
@@ -6,16 +6,20 @@ import re
 import pyphen
 from math import *
 from textblob import TextBlob
-from typing import Dict
+from typing import Dict, List
 
-# converts all pages of PDF to PIL images and converts those images to numpy array for processing
-def convert_to_image(file_bytes: bytes):
-    # find a general package to handle this for all the supported document types
+def convert_to_image(file_bytes: bytes) -> List[np.ndarray]:
+    """
+    Takes in the raw byte contents of the uploaded document, converts it into an array of PIL images, and further into a list of numpy arrays for further processing.
+    """
     page_images = convert_from_bytes(file_bytes) # array of PIL image objects
     manipulated_images = [np.array(page) for page in page_images]
     return manipulated_images
 
-def process_pdf_page(pages) -> Dict[str, str]:
+def process_pdf_page(pages: List[np.ndarray]) -> Dict[str, str]:
+    """
+    Takes in a list consisting of numpy arrays, one corresponding to each page in the uploaded document and returns a dictionary mapping page numbers to its respective text contents.
+    """
     text_contents = {}
     pattern = re.compile(r'^[!@#$%^&*(),.?":{}|<>]+$|^\d+')
     for i in range(len(pages)):
@@ -34,14 +38,17 @@ def process_pdf_page(pages) -> Dict[str, str]:
                 modified_img = cv2.rotate(grayscale, cv2.ROTATE_90_CLOCKWISE)
             case 90:
                 modified_img = cv2.rotat(grayscale, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
         # apply gaussian blur and binarize it using otsu's thresholding
         blurred = cv2.GaussianBlur(modified_img, (3,3), 0)
         _, thresh_img = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
         # run the page through pyseterract to extract the text contents
         extracted_text = pytesseract.image_to_string(thresh_img)
+
         lines = extracted_text.split("\n")
         for j in range(len(lines)):
-            # filters out all words which purely have only spaces or whitespaces, and ones that solely consist of numbers or special characters
+            # filters out all words which have only spaces, and ones that consist of numbers or special characters
             lines[j] = " ".join(list(filter(lambda word: bool(word.strip()) and not bool(pattern.match(word)), lines[j].split(" "))))
         text_contents[f"Page {i + 1}"] = "\n".join(lines)
     
@@ -49,6 +56,9 @@ def process_pdf_page(pages) -> Dict[str, str]:
     return text_contents
 
 def determine_reading_level(score: float) -> str:
+    """
+    Takes in a flesch readability score as input and returns the document's approximate reading level based on it.
+    """
     level = None
     match score:
         case _ if 0 <= score <= 29:
@@ -71,10 +81,12 @@ def determine_reading_level(score: float) -> str:
     return level
 
 def calculate_text_statistics(text_contents: Dict[str, str]) -> Dict[str, float]:
-    # text_contents is a dictionary that maps page numbers to the text contained in them
+    """
+    Takes in a dictionary mappings pages in the document to its text contents and returns a dictionary with various statistics about the document.
+    """
     num_words, num_chars, num_sentences, num_syllables = 0, 0, 0, 0
     pages = list(text_contents.keys())
-    dic = pyphen.Pyphen(lang='en_US') # eventually move towards accepting documents containing different languages
+    dic = pyphen.Pyphen(lang='en_US')
 
     for page in pages:
         curr = TextBlob(text_contents[page])

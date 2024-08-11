@@ -9,7 +9,7 @@ export default function QGenerationSelection() {
   const [questionGenerationFiles, setQuestionGenerationFiles] = useState([]);
   const [generatePDFStatus, setGeneratePDFStatus] = useState("");
   const [isDisabled, setIsDisabled] = useState(false);
-  const [selectedFile, setSelectedFile] = useState("")
+  const [selectedFile, setSelectedFile] = useState("");
 
   const username = sessionStorage.getItem("username");
 
@@ -28,7 +28,7 @@ export default function QGenerationSelection() {
     let questionType = document.getElementById("questionType");
     let fileDownload = document.getElementById("questionsDownload");
 
-    fileDownload.style.display = "none"
+    fileDownload.style.display = "none";
 
     const questionTypes = Array.from(questionType.options)
       .filter((option) => option.selected)
@@ -95,11 +95,13 @@ export default function QGenerationSelection() {
             id="questionFileSelect"
             name="questionFileSelect"
             disabled={isDisabled}
-            onChange = {(e) => setSelectedFile(e.target.value)}
-            value = {selectedFile}
+            onChange={(e) => setSelectedFile(e.target.value)}
+            value={selectedFile}
             onFocus={() => setGeneratePDFStatus("")}
           >
-            <option value = "" disabled>Select a file</option>
+            <option value="" disabled>
+              Select a file
+            </option>
             {questionGenerationFiles.map((file, idx) => {
               return (
                 <option key={idx} value={file}>

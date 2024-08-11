@@ -33,7 +33,6 @@
   transform: translateY(-2px);
 }
 
-/* Styling for individual messages */
 .message {
   padding: 10px 15px;
   border-radius: 20px; 
@@ -42,14 +41,12 @@
   word-wrap: break-word; 
 }
 
-/* Styling for user messages */
 .user-message {
   background-color: #dcf8c6; 
   align-self: flex-end; 
   border-bottom-right-radius: 0; 
 }
 
-/* Styling for bot messages */
 .bot-message {
   background-color: #ececec; 
   align-self: flex-start; 

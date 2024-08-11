@@ -34,7 +34,6 @@ export default function App() {
 
   async function logOut(e) {
     e.preventDefault();
-    // sign user out and redirect them back to the login page
     await signOut(auth)
       .then(() => {
         sessionStorage.removeItem("username");
