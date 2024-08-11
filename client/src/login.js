@@ -15,7 +15,7 @@ import { auth } from "./firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import { InputAdornment, stepClasses } from "@mui/material";
+import { InputAdornment } from "@mui/material";
 import Loading from "./Loading";
 
 export default function Login() {
