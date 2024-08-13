@@ -24,6 +24,10 @@ from langchain_core.messages.human import HumanMessage
 from langchain_core.messages.ai import AIMessage
 from vertexai.preview import tokenization
 
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 load_dotenv()
 # prevent the warning that arises when using the Gemini API
 os.environ["GRPC_VERBOSITY"] = "ERROR"
