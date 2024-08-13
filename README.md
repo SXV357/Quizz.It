@@ -47,7 +47,7 @@ Once you have all this set up, execute `npm install` to install all the necessar
 ### Server Setup
 Navigate to the server directory by running `cd server`. Then, run the following commands to create a virtual environment, start it, and install the necessary dependencies:
 ```
-python3 -m venv venv
+virtualenv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
