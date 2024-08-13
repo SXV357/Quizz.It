@@ -66,3 +66,9 @@ STORAGE_BUCKET=
 GOOGLE_API_KEY=
 ```
 The first 9 pieces of information are the ones you will obtain through the JSON file downloaded to your local machine which has the required credentials to set up the Admin SDK. The `STORAGE_BUCKET` value is the exact same as as the `REACT_APP_STORAGE_BUCKET` value and the last one is for the API key you generated through Google's AI Studio for the Gemini API. Once you have all of this setup, simply execute `python3 server.py` to start the server. There may be a situation where you find that the server is taking too long to start. In that case, deactivate the virtual environment by running the `deactivate` command, then run the server once again.
+
+## Contributing
+
+Contributions to this project are welcome as there are a lot of things that can still be done to make the application more robust. Before you make any contributions, you must abide to the following guidelines:
+- Make sure to fork the repository
+- When submitting changes either for a new/existing feature, or for a bug, create a pull request and assign Shreyas Viswanathan as the primary reviewer; only approved changes will be merged into the application.
