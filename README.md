@@ -65,4 +65,4 @@ CLIENT_X509_CERT_URL=
 STORAGE_BUCKET=
 GOOGLE_API_KEY=
 ```
-The first 9 pieces of information are the ones you will obtain through the JSON file downloaded to your local machine which has the required credentials to set up the Admin SDK. The `STORAGE_BUCKET` value is the exact same as as the `REACT_APP_STORAGE_BUCKET` value and the last one is for the API key you generated through Google's AI Studio for the Gemini API. Once you have all of this setup, simply execute `python3 server.py` to start the server.
+The first 9 pieces of information are the ones you will obtain through the JSON file downloaded to your local machine which has the required credentials to set up the Admin SDK. The `STORAGE_BUCKET` value is the exact same as as the `REACT_APP_STORAGE_BUCKET` value and the last one is for the API key you generated through Google's AI Studio for the Gemini API. Once you have all of this setup, simply execute `python3 server.py` to start the server. There may be a situation where you find that the server is taking too long to start. In that case, deactivate the virtual environment by running the `deactivate` command, then run the server once again.
