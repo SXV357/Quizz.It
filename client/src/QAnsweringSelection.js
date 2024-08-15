@@ -14,7 +14,7 @@ export default function QAnsweringSelection() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:5000/fetch_files?username=${username}`, {
+    fetch(`https://quizz-it.onrender.com/fetch_files?username=${username}`, {
       method: "GET",
     })
       .then((res) => res.json())
@@ -35,7 +35,7 @@ export default function QAnsweringSelection() {
     setIsDisabled(true);
 
     fetch(
-      `http://127.0.0.1:5000/signal_doc_qa_selection?file=${selectedFile}&username=${username}`,
+      `https://quizz-it.onrender.com/signal_doc_qa_selection?file=${selectedFile}&username=${username}`,
       {
         method: "POST",
       }

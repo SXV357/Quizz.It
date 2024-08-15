@@ -69,7 +69,7 @@ export default function App() {
       setFileUploadStatus("Upload in progress...");
       formData.append("upload", file);
 
-      await fetch(`http://127.0.0.1:5000/upload_file?username=${username}`, {
+      await fetch(`https://quizz-it.onrender.com/upload_file?username=${username}`, {
         method: "POST",
         body: formData,
       })
@@ -88,7 +88,7 @@ export default function App() {
 
   const determine_route = (e, page) => {
     e.preventDefault();
-    fetch(`http://127.0.0.1:5000/check_files?username=${username}`, {
+    fetch(`https://quizz-it.onrender.com/check_files?username=${username}`, {
       method: "GET",
     })
       .then((res) => res.json())

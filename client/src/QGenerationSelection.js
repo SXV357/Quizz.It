@@ -16,7 +16,7 @@ export default function QGenerationSelection() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:5000/fetch_files?username=${username}`, {
+    fetch(`https://quizz-it.onrender.com/fetch_files?username=${username}`, {
       method: "GET",
     })
       .then((res) => res.json())
@@ -45,7 +45,7 @@ export default function QGenerationSelection() {
     setIsDisabled(true);
     setGeneratePDFStatus("Please wait as the questions are being generated...");
 
-    fetch(`http://127.0.0.1:5000/generate_pdf`, {
+    fetch(`https://quizz-it.onrender.com/generate_pdf`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

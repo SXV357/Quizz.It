@@ -39,7 +39,7 @@ export default function Chatbot() {
     conversation.appendChild(loader);
 
     setIsDisabled(true);
-    fetch(`http://127.0.0.1:5000/get_model_response`, {
+    fetch(`https://quizz-it.onrender.com/get_model_response`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

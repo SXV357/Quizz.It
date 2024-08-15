@@ -36,7 +36,7 @@ export default function SignUp() {
     UseAuthValidation(password);
 
   function validateEmail(email) {
-    return fetch(`http://127.0.0.1:5000/check-email-validity?email=${email}`, {
+    return fetch(`https://quizz-it.onrender.com/check-email-validity?email=${email}`, {
       method: "GET",
     })
       .then((res) => {

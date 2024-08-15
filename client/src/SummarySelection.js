@@ -12,7 +12,7 @@ export default function SummarySelection() {
   const username = sessionStorage.getItem("username");
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:5000/fetch_files?username=${username}`, {
+    fetch(`https://quizz-it.onrender.com/fetch_files?username=${username}`, {
       method: "GET",
     })
       .then((res) => res.json())
@@ -31,7 +31,7 @@ export default function SummarySelection() {
 
     try {
       fetch(
-        `http://127.0.0.1:5000/generate_summary?username=${username}&file=${selectedFile}`,
+        `https://quizz-it.onrender.com/generate_summary?username=${username}&file=${selectedFile}`,
         {
           method: "GET",
         }
