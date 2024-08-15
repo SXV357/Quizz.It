@@ -112,7 +112,10 @@ export default function ForgotPassword() {
                   });
                 })
                 .catch((e) => {
-                  console.log("error when updating password");
+                  console.log(e);
+                  setValidationStatus(
+                    "There was an error when updating the password. Please try again!"
+                  );
                 });
             })
             .catch((e) => {

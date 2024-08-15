@@ -67,7 +67,12 @@ export default function QGenerationSelection() {
         setIsDisabled(false);
         setGeneratePDFStatus("Questions generated successfully!");
       })
-      .then((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        setGeneratePDFStatus(
+          "There was an error when generating the questions and exporting them as a PDF. Please try again!"
+        );
+      });
   };
 
   return (

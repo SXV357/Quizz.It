@@ -37,19 +37,22 @@ export default function App() {
     await signOut(auth)
       .then(() => {
         sessionStorage.removeItem("username");
+        toggleDialogDisplay(false);
         setIsLoading(true);
         setTimeout(() => {
           navigate("/login");
           setIsLoading(false);
         }, 2000);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        toggleDialogDisplay(false);
+      });
   }
 
   async function uploadFileToStorage(fileName, uploadFile) {
     const fileStorage = ref(storage, `${username}/${fileName}`);
     await uploadBytes(fileStorage, uploadFile).then((snapshot) => {
-      console.log(snapshot);
       setFileUploadStatus("File uploaded successfully");
     });
   }
@@ -69,10 +72,13 @@ export default function App() {
       setFileUploadStatus("Upload in progress...");
       formData.append("upload", file);
 
-      await fetch(`https://quizz-it.onrender.com/upload_file?username=${username}`, {
-        method: "POST",
-        body: formData,
-      })
+      await fetch(
+        `https://quizz-it.onrender.com/upload_file?username=${username}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      )
         .then((res) => res.json())
         .then((data) => {
           if (data.status === "PDF OK") {
@@ -156,7 +162,6 @@ export default function App() {
                   </Button>
                   <Button
                     onClick={(e) => {
-                      toggleDialogDisplay(false);
                       logOut(e);
                     }}
                     autoFocus
