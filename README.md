@@ -8,7 +8,7 @@ Quizz.It is a full-stack educational productivity application designed to stream
 
 Before setting anything up in the client and server directories make sure to run the following commands to clone the repository and then navigate to the correct directory:
 ```
-git clone https://github.com/YourUsername/Quizz.It.git
+git clone https://github.com/SXV357/Quizz.It.git
 cd Quizz.It
 ```
 
