@@ -5,6 +5,7 @@
     <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki">
   </a>
 </div>
+<br />
 
 Quizz.It is a full-stack educational productivity application designed to streamline access to college students' most common educational needs, such as getting access to efficient document summaries, finding questions to use to study for tests/quizzes, and if they have access to some sort of document and want to understand it in depth. It was submitted to Purdue's BoilerMake XI hackathon back in Jan 2024, and was shortlisted for several awards such as Klaviyo's, "We always put our customers first", "Best use of AI in education", and BoilerBookings', "Project that helps college students the most". The original application originally used a different tech stack, but since then has been significantly refactored to enhance user experience and also ensure resilience and security. The following are the key components of this application:
 - Frontend: React, HTML/CSS/JavaScript, React router, Firebase, Material UI
