@@ -17,7 +17,7 @@ export default function SummarySelection() {
     })
       .then((res) => res.json())
       .then((data) => setSummarizeFiles(data.files));
-  }, []);
+  }, [username]);
 
   const summarize = async (e) => {
     e.preventDefault();

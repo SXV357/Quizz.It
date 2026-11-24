@@ -21,7 +21,7 @@ export default function QGenerationSelection() {
     })
       .then((res) => res.json())
       .then((data) => setQuestionGenerationFiles(data.files));
-  }, []);
+  }, [username]);
 
   const generateQuestions = (e) => {
     e.preventDefault();
@@ -138,6 +138,8 @@ export default function QGenerationSelection() {
         </button>
         <div className="status">{generatePDFStatus}</div>
       </div>
+      {/* href is set at runtime in generateQuestions before the link is shown */}
+      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
       <a
         href="#"
         id="questionsDownload"

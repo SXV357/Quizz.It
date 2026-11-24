@@ -19,7 +19,7 @@ export default function QAnsweringSelection() {
     })
       .then((res) => res.json())
       .then((data) => setQuestionAnsweringFiles(data.files));
-  }, []);
+  }, [username]);
 
   const selectFile = (e) => {
     e.preventDefault();

@@ -19,7 +19,7 @@ export default function UseAuthValidation(password) {
     setHasMinChars(password.length >= 8);
     setHasLowerCase(/[a-z]/.test(password));
     setHasUpperCase(/[A-Z]/.test(password));
-    setHasSpecial(/[!@#$%^&*()\-+={}[\]:;"'<>,.?\/|\\]/.test(password));
+    setHasSpecial(/[!@#$%^&*()\-+={}[\]:;"'<>,.?/|\\]/.test(password));
     setIsPasswordValid(
       hasMinChars && hasLowercase && hasUpperCase && hasSpecial && hasNumber
     );
