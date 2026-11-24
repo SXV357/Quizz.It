@@ -7,7 +7,7 @@
 </div>
 <br />
 
-Quizz.It is a full-stack educational productivity application designed to streamline access to college students' most common educational needs, such as getting access to efficient document summaries, finding questions to use to study for tests/quizzes, and if they have access to some sort of document and want to understand it in depth. It was submitted to Purdue's BoilerMake XI hackathon back in Jan 2024, and was shortlisted for several awards such as Klaviyo's, "We always put our customers first", "Best use of AI in education", and BoilerBookings', "Project that helps college students the most". The original application originally used a different tech stack, but since then has been significantly refactored to enhance user experience and also ensure resilience and security. The following are the key components of this application:
+Quizz.It is a full-stack educational productivity application designed to streamline access to college students' most common educational needs, such as getting efficient document summaries, finding questions to study for tests/quizzes, and understanding a document in depth. It was submitted to Purdue's BoilerMake XI hackathon in Jan 2024, and was shortlisted for several awards such as Klaviyo's, "We always put our customers first", "Best use of AI in education", and BoilerBookings', "Project that helps college students the most". The application originally used a different tech stack, but was significantly refactored in summer 2024 to enhance user experience and also ensure resilience and security. The following are the key components of this application:
 - Frontend: React, HTML/CSS/JavaScript, React router, Firebase, Material UI
 - Backend: Python, Flask, Firebase Admin SDK, Gemini API, LangChain, OpenCV, NumPy, Pytesseract
 
@@ -22,8 +22,8 @@ cd Quizz.It
 Once you've cloned the repository, you also need to do the following things:
 - Create a firebase project, enabling authentication, firestore, and cloud storage and do the following things:
     - Obtain the API key and related environment variables to be used on the client side which will be provided to you by default once the project has been created
-    - In order to obtain the same to set up the Admin SDK, click the gear icon next to `Project Overview` and click the `Project Settings` button. Then navigate to the `Service accounts` tab where the default `Firebase Admin SDK` panel will be open. Here, select the `Python` option and click `Generate new private key`. This will download the required credentials into a JSON file on your local machine. Make sure to save this in a secure location as you will be using this later on.
-    - Enable CORS for the firebase storage bucket. For this go to Google Cloud Platform and navigate to the firebase project you just created. Then click the terminal icon in the top right to activate the cloud shell. Once the shell has been setup, click the `Open editor` button. Once the editor loads, create a new file called `cors.json` and input the following information, making sure to save it:
+    - To obtain the credentials needed to set up the Admin SDK, click the gear icon next to `Project Overview` and click the `Project Settings` button. Then navigate to the `Service accounts` tab where the default `Firebase Admin SDK` panel will be open. Here, select the `Python` option and click `Generate new private key`. This will download the required credentials into a JSON file on your local machine. Make sure to save this in a secure location as you will be using this later on.
+    - Enable CORS for the firebase storage bucket. To do this, go to the Google Cloud Console and navigate to the firebase project you just created. Then click the terminal icon in the top right to activate the cloud shell. Once the shell has been setup, click the `Open editor` button. Once the editor loads, create a new file called `cors.json` and input the following information, making sure to save it:
     - ```
         [{
             "origin": ["*"],
@@ -31,13 +31,13 @@ Once you've cloned the repository, you also need to do the following things:
             "maxAgeSeconds": 3600
         }]
         ```
-    - Once you've created this configuration file, navigate back to the shell and execute the following command to enable CORS. In case you're wondering where to find the storage bucket URl, navigate to the storage tab in your firebase project and copy the link that starts with `gs://`:
+    - Once you've created this configuration file, navigate back to the shell and execute the following command to enable CORS. In case you're wondering where to find the storage bucket URL, navigate to the storage tab in your firebase project and copy the link that starts with `gs://`:
     - ```
        gsutil cors set cors.json {your firebase storage bucket URL} 
       ```
     - You will also need to obtain a Gemini API key through Google's AI Studio
 
-Now that all the background work is done, you need to set up a few things on both the client and server side to ensure smooth functioning.
+Now that all the background work is done, you need to set up a few things on both the client and server side.
 
 ### Client Setup
 Navigate to the client directory by running `cd client`. Then create a `.env` file in the root directory and make sure it is structured exactly as follows with the information you obtained when you initially set up the firebase project:
@@ -72,4 +72,4 @@ CLIENT_X509_CERT_URL=
 STORAGE_BUCKET=
 GOOGLE_API_KEY=
 ```
-The first 9 pieces of information are the ones you will obtain through the JSON file downloaded to your local machine which has the required credentials to set up the Admin SDK. The `STORAGE_BUCKET` value is the exact same as as the `REACT_APP_STORAGE_BUCKET` value and the last one is for the API key you generated through Google's AI Studio for the Gemini API. Once you have all of this setup, simply execute `python3 server.py` to start the server. There may be a situation where you find that the server is taking too long to start. In that case, deactivate the virtual environment by running the `deactivate` command, then run the server once again.
+The first 9 pieces of information are the ones you will obtain through the JSON file downloaded to your local machine which has the required credentials to set up the Admin SDK. The `STORAGE_BUCKET` value is the exact same as the `REACT_APP_STORAGE_BUCKET` value and the last one is for the API key you generated through Google's AI Studio for the Gemini API. Once you have all of this setup, simply execute `python3 server.py` to start the server. There may be a situation where you find that the server is taking too long to start. In that case, deactivate the virtual environment by running the `deactivate` command, then run the server once again.
