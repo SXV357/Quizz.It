@@ -1,7 +1,7 @@
 # Quizz.It
 
 <div align="center">
-  <a href="https://deepwiki.com/SXV357/Quizz.It"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
+  <a href="https://deepwiki.com/SXV357/Quizz.It"><img src="https://img.shields.io/badge/DeepWiki-Ask-blue" alt="Ask DeepWiki"></a>
 </div>
 <br />
 
